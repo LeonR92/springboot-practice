@@ -25,6 +25,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+	implementation("org.springframework.boot:spring-boot-starter-flyway")
 	implementation("org.xerial:sqlite-jdbc:3.46.1.3")
 	implementation("org.hibernate.orm:hibernate-community-dialects")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")

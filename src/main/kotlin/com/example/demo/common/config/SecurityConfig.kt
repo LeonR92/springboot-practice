@@ -21,8 +21,11 @@ class SecurityConfig(
     @Value("\${jwt.secret}") secret: String
 ) {
 
-    // HS256 needs a secret of at least 32 bytes
-    private val secretKey = SecretKeySpec(secret.toByteArray(), "HmacSHA256")
+    private val secretKey = secret.toByteArray().let {
+        // HS256 needs a secret of at least 32 bytes
+        require(it.size >= 32) { "JWT secret must be at least 32 bytes" }
+        SecretKeySpec(it, "HmacSHA256")
+    }
 
     @Bean
     fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
@@ -40,7 +43,7 @@ class SecurityConfig(
             .csrf { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests {
-                it.requestMatchers("/api/auth/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+                it.requestMatchers("/error", "/api/*/auth/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                     .anyRequest().authenticated()
             }
             .oauth2ResourceServer { it.jwt { } }
