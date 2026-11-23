@@ -15,4 +15,8 @@ class GlobalExceptionHandler {
     @ExceptionHandler(UserNotFoundException::class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     fun handleUserNotFound(e: UserNotFoundException) = mapOf("error" to e.message)
+
+    @ExceptionHandler(InvalidCredentialsException::class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    fun handleInvalidCredentials(e: InvalidCredentialsException) = mapOf("error" to e.message)
 }

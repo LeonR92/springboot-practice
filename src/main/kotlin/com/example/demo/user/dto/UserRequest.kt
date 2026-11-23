@@ -3,6 +3,7 @@ package com.example.demo.user.dto
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
+import jakarta.validation.constraints.Size
 
 data class CreateUserRequest(
     @field:NotBlank
@@ -10,7 +11,11 @@ data class CreateUserRequest(
 
     @field:NotBlank
     @field:Email
-    val email: String
+    val email: String,
+
+    @field:Size(min = 8, message = "must be at least 8 characters")
+    @field:Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d).*$", message = "must contain a letter and a digit")
+    val password: String
 )
 
 data class UpdateUserRequest(

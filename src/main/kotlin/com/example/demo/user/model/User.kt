@@ -22,6 +22,9 @@ class User(
     @Column(nullable=false, unique=true)
     var email: String,
 
+    @Column(nullable=false)
+    var hashedPassword: String,
+
     @Enumerated(EnumType.STRING)
     @Column(nullable=false)
     var role: UserRole = UserRole.USER

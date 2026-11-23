@@ -8,22 +8,30 @@ import com.example.demo.user.dto.UserResponse
 import com.example.demo.user.dto.toResponse
 import com.example.demo.user.model.User
 import com.example.demo.user.repository.UserRepository
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 
 @Service
 class UserService(
-    private val repository: UserRepository
+    private val repository: UserRepository,
+    private val passwordEncoder: PasswordEncoder
 ) {
 
     fun getUsers(): List<UserResponse> =
         repository.findAll().map { it.toResponse() }
+
+    fun findByEmail(email: String): User? = repository.findByEmail(email)
 
     fun createUser(request: CreateUserRequest): UserResponse {
         if (repository.findByEmail(request.email) != null) {
             throw EmailAlreadyExistsException(request.email)
         }
         val user = repository.save(
-            User(name = request.name, email = request.email)
+            User(
+                name = request.name,
+                email = request.email,
+                hashedPassword = requireNotNull(passwordEncoder.encode(request.password))
+            )
         )
         return user.toResponse()
     }
