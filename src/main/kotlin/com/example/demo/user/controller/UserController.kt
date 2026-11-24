@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping(path = ["/{version}/users"], version = "1.0")
+@RequestMapping("/v1/users")
 class UserController(
     private val service: UserService
 ) {

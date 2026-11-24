@@ -11,7 +11,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping(path = ["/{version}/auth"], version = "1.0")
+@RequestMapping("/v1/auth")
 class AuthController(
     private val authService: AuthService,
     private val userService: UserService

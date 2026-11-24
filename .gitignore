@@ -39,3 +39,7 @@ out/
 
 ### Kotlin ###
 .kotlin
+
+### SQLite ###
+*.db
+*.db.bak
