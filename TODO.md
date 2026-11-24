@@ -1,11 +1,5 @@
 Hotel booking system
 
-- Reservations (Public)
-    - Search , pagination , sort
-    - CRUD bookings
-    - Temporary reservations
-    - Reservation history
-    - Lock
 
 - Payments with Strategy pattern (Public)
     - Full payment or deposit
@@ -18,3 +12,7 @@ Hotel booking system
     - Seasonal rate
     - Discount
     - Occupancy discount
+
+
+- QOL
+    - PDF and email generation

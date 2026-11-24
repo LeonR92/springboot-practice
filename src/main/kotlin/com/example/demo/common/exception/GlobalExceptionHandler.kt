@@ -48,6 +48,18 @@ class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
     fun handleRoomTypeInUse(e: RoomTypeInUseException) = mapOf("error" to e.message)
 
+    @ExceptionHandler(ReservationNotFoundException::class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    fun handleReservationNotFound(e: ReservationNotFoundException) = mapOf("error" to e.message)
+
+    @ExceptionHandler(InvalidStayDatesException::class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    fun handleInvalidStayDates(e: InvalidStayDatesException) = mapOf("error" to e.message)
+
+    @ExceptionHandler(RoomNotAvailableException::class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    fun handleRoomNotAvailable(e: RoomNotAvailableException) = mapOf("error" to e.message)
+
     @ExceptionHandler(InvalidCredentialsException::class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     fun handleInvalidCredentials(e: InvalidCredentialsException) = mapOf("error" to e.message)
