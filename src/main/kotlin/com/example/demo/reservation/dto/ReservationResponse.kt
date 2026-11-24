@@ -2,6 +2,7 @@ package com.example.demo.reservation.dto
 
 import com.example.demo.reservation.model.Reservation
 import com.example.demo.reservation.model.ReservationStatus
+import java.math.BigDecimal
 import java.time.LocalDate
 
 data class ReservationResponse(
@@ -13,7 +14,9 @@ data class ReservationResponse(
     val guestEmail: String,
     val checkIn: LocalDate,
     val checkOut: LocalDate,
-    val status: ReservationStatus
+    val status: ReservationStatus,
+    val totalPrice: BigDecimal,
+    val couponCode: String?
 )
 
 fun Reservation.toResponse() = ReservationResponse(
@@ -25,5 +28,7 @@ fun Reservation.toResponse() = ReservationResponse(
     guestEmail = guestEmail,
     checkIn = checkIn,
     checkOut = checkOut,
-    status = status
+    status = status,
+    totalPrice = totalPrice,
+    couponCode = couponCode
 )

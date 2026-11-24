@@ -23,8 +23,15 @@ data class ReservationRequest(
 
     val checkOut: LocalDate,
 
-    val status: ReservationStatus = ReservationStatus.PENDING
+    val status: ReservationStatus = ReservationStatus.PENDING,
+
+    @field:Size(max = 50)
+    val couponCode: String? = null
 )
+
+// The one place that decides what counts as "no coupon": blank means none.
+fun ReservationRequest.normalizedCoupon(): String? =
+    couponCode?.trim()?.takeIf { it.isNotEmpty() }
 
 fun ReservationRequest.validateDates() {
     if (!checkOut.isAfter(checkIn)) {

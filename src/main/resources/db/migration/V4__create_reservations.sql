@@ -8,6 +8,8 @@ CREATE TABLE reservations (
     status      VARCHAR(255) NOT NULL DEFAULT 'PENDING'
         CHECK (status IN ('PENDING', 'CONFIRMED', 'CANCELLED', 'EXPIRED')),
     lock_until  TIMESTAMP NOT NULL,
+    total_price DECIMAL(10, 2) NOT NULL CHECK (total_price >= 0),
+    coupon_code VARCHAR(255),
     CHECK (check_out > check_in),
     FOREIGN KEY (room_id) REFERENCES rooms (id)
 );

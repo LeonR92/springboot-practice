@@ -60,6 +60,10 @@ class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
     fun handleRoomNotAvailable(e: RoomNotAvailableException) = mapOf("error" to e.message)
 
+    @ExceptionHandler(InvalidCouponException::class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    fun handleInvalidCoupon(e: InvalidCouponException) = mapOf("error" to e.message)
+
     @ExceptionHandler(InvalidCredentialsException::class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     fun handleInvalidCredentials(e: InvalidCredentialsException) = mapOf("error" to e.message)

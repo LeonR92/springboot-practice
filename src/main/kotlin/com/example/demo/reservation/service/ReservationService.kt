@@ -6,8 +6,11 @@ import com.example.demo.common.exception.RoomNotAvailableException
 import com.example.demo.common.exception.RoomNotFoundException
 import com.example.demo.hotel.model.Room
 import com.example.demo.hotel.repository.RoomRepository
+import com.example.demo.pricing.model.PricingContext
+import com.example.demo.pricing.service.PricingService
 import com.example.demo.reservation.dto.ReservationRequest
 import com.example.demo.reservation.dto.ReservationResponse
+import com.example.demo.reservation.dto.normalizedCoupon
 import com.example.demo.reservation.dto.toResponse
 import com.example.demo.reservation.dto.validateDates
 import com.example.demo.reservation.model.Reservation
@@ -17,8 +20,10 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.Instant
+import java.math.BigDecimal
 import java.time.Duration
+import java.time.Instant
+import java.time.LocalDate
 
 
 private val lockDurationMinutes = 15L
@@ -28,7 +33,8 @@ private val lockDurationMinutes = 15L
 class ReservationService(
     private val repository: ReservationRepository,
     private val roomRepository: RoomRepository,
-    private val availabilityService: AvailabilityService
+    private val availabilityService: AvailabilityService,
+    private val pricingService: PricingService
 ) {
 
     @Transactional(readOnly = true)
@@ -51,7 +57,9 @@ class ReservationService(
             checkIn = request.checkIn,
             checkOut = request.checkOut,
             status = request.status,
-            lockUntil = Instant.now().plus(Duration.ofMinutes(lockDurationMinutes))
+            lockUntil = Instant.now().plus(Duration.ofMinutes(lockDurationMinutes)),
+            totalPrice = calculateTotalPrice(room, request.checkIn, request.checkOut, request.normalizedCoupon()),
+            couponCode = request.normalizedCoupon()
         )
         return repository.save(reservation).toResponse()
     }
@@ -61,8 +69,20 @@ class ReservationService(
         request.validateDates()
         val reservation = findReservation(id)
 
-        reservation.room = lockRoom(request.roomId)
+        val room = lockRoom(request.roomId)
         requireAvailable(request, excludeReservationId = id)
+
+        // Re-price only when the stay or the coupon changes; otherwise keep the price the guest was quoted.
+        val coupon = request.normalizedCoupon() ?: reservation.couponCode
+        val stayChanged = reservation.room.id != room.id ||
+            reservation.checkIn != request.checkIn ||
+            reservation.checkOut != request.checkOut
+        if (stayChanged || coupon != reservation.couponCode) {
+            reservation.totalPrice = calculateTotalPrice(room, request.checkIn, request.checkOut, coupon, excludeReservationId = id)
+            reservation.couponCode = coupon
+        }
+
+        reservation.room = room
         reservation.guestName = request.guestName
         reservation.guestEmail = request.guestEmail
         reservation.checkIn = request.checkIn
@@ -82,6 +102,18 @@ class ReservationService(
     @Transactional
     fun expireStaleReservations(): Int =
         repository.expireHolds(ReservationStatus.PENDING, ReservationStatus.EXPIRED, Instant.now())
+
+    private fun calculateTotalPrice(
+        room: Room,
+        checkIn: LocalDate,
+        checkOut: LocalDate,
+        couponCode: String?,
+        excludeReservationId: Long? = null
+    ): BigDecimal {
+        val context = PricingContext(room, checkIn, checkOut, couponCode, excludeReservationId)
+        val basePrice = room.roomType.basePrice.multiply(BigDecimal.valueOf(context.nights))
+        return pricingService.execute(context, basePrice)
+    }
 
     private fun findReservation(id: Long): Reservation =
         repository.findById(id).orElseThrow { ReservationNotFoundException(id) }

@@ -12,6 +12,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
+import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
 
@@ -51,5 +52,12 @@ class Reservation(
     var status: ReservationStatus = ReservationStatus.PENDING,
 
     @Column(nullable = false)
-    var lockUntil: Instant
+    var lockUntil: Instant,
+
+    // Final price snapshot, calculated when the stay is booked. Later changes to rates don't alter it.
+    @Column(nullable = false, precision = 10, scale = 2)
+    var totalPrice: BigDecimal,
+
+    // Coupon the price was calculated with (if any), so a later re-price keeps the discount
+    var couponCode: String? = null
 )
