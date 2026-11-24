@@ -1,5 +1,6 @@
 package com.example.demo.auth.service
 
+import com.example.demo.user.model.UserRole
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm
 import org.springframework.security.oauth2.jwt.JwsHeader
@@ -16,11 +17,12 @@ class JwtService(
     @Value("\${jwt.expiration-seconds}") private val expirationSeconds: Long
 ) {
 
-    fun generateToken(userId: Long): String {
+    fun generateToken(userId: Long, role: UserRole): String {
         val now = Instant.now()
 
         val claims = JwtClaimsSet.builder()
             .issuer(issuer)
+            .claim("role", role.name)
             .subject(userId.toString())
             .issuedAt(now)
             .expiresAt(now.plusSeconds(expirationSeconds))
