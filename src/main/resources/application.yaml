@@ -26,3 +26,28 @@ payment:
   rate-limit:
     max-requests: 5
     window-seconds: 60
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.example.demo: ${APP_LOG_LEVEL:INFO}
+
+server:
+  tomcat:
+    basedir: .
+    accesslog:
+      enabled: true
+      directory: logs
+      buffered: false
+      pattern: "%{yyyy-MM-dd HH:mm:ss}t %m %U -> %s (%{ms}T ms)"

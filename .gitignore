@@ -43,3 +43,5 @@ out/
 ### SQLite ###
 *.db
 *.db.bak
+
+logs/
