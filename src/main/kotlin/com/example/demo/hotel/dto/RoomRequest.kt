@@ -8,10 +8,7 @@ data class RoomRequest(
     @field:NotBlank
     @field:Size(max = 50)
     val roomNumber: String,
-
     val roomTypeId: Long,
-
     val floor: Int? = null,
-
-    val status: RoomStatus = RoomStatus.ACTIVE
+    val status: RoomStatus = RoomStatus.ACTIVE,
 )

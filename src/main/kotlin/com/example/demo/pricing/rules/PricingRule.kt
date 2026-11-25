@@ -6,6 +6,6 @@ import java.math.BigDecimal
 interface PricingRule {
     fun apply(
         context: PricingContext,
-        currentPrice: BigDecimal
+        currentPrice: BigDecimal,
     ): BigDecimal
 }

@@ -11,12 +11,12 @@ import org.springframework.stereotype.Service
 class AuthService(
     private val passwordEncoder: PasswordEncoder,
     private val jwtService: JwtService,
-    private val userService: UserService
+    private val userService: UserService,
 ) {
-
     fun login(request: LoginRequest): LoginResponse {
-        val user = userService.findByEmail(request.email)
-            ?: throw InvalidCredentialsException()
+        val user =
+            userService.findByEmail(request.email)
+                ?: throw InvalidCredentialsException()
 
         if (!passwordEncoder.matches(request.password, user.hashedPassword)) {
             throw InvalidCredentialsException()

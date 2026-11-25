@@ -7,7 +7,7 @@ import java.security.MessageDigest
 
 @Component
 class WebhookVerifier(
-    @Value("\${payment.webhook-secret}") private val expected: String
+    @Value("\${payment.webhook-secret}") private val expected: String,
 ) {
     private val expectedBytes = expected.toByteArray()
 
@@ -16,8 +16,9 @@ class WebhookVerifier(
     }
 
     fun verify(provided: String?) {
-        val ok = provided != null &&
-            MessageDigest.isEqual(provided.toByteArray(), expectedBytes)
+        val ok =
+            provided != null &&
+                MessageDigest.isEqual(provided.toByteArray(), expectedBytes)
         if (!ok) throw InvalidWebhookSignatureException()
     }
 }

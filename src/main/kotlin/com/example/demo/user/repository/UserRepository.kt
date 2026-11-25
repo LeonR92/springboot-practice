@@ -3,7 +3,6 @@ package com.example.demo.user.repository
 import com.example.demo.user.model.User
 import org.springframework.data.jpa.repository.JpaRepository
 
-interface UserRepository:JpaRepository<User, Long> {
-    fun findByEmail(email:String): User?
-
+interface UserRepository : JpaRepository<User, Long> {
+    fun findByEmail(email: String): User?
 }

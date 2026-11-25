@@ -19,30 +19,34 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/v1/room-types")
 class RoomTypeController(
-    private val service: RoomTypeService
+    private val service: RoomTypeService,
 ) {
-
     @GetMapping
     fun getRoomTypes(): List<RoomTypeResponse> = service.getAll()
 
     @GetMapping("/{id}")
-    fun getRoomTypeById(@PathVariable id: Long): RoomTypeResponse = service.getById(id)
+    fun getRoomTypeById(
+        @PathVariable id: Long,
+    ): RoomTypeResponse = service.getById(id)
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun createRoomType(@Valid @RequestBody request: RoomTypeRequest): RoomTypeResponse =
-        service.create(request)
+    fun createRoomType(
+        @Valid @RequestBody request: RoomTypeRequest,
+    ): RoomTypeResponse = service.create(request)
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     fun updateRoomType(
         @PathVariable id: Long,
-        @Valid @RequestBody request: RoomTypeRequest
+        @Valid @RequestBody request: RoomTypeRequest,
     ): RoomTypeResponse = service.update(id, request)
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun deleteRoomType(@PathVariable id: Long) = service.delete(id)
+    fun deleteRoomType(
+        @PathVariable id: Long,
+    ) = service.delete(id)
 }

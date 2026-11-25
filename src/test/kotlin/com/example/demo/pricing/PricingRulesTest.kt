@@ -28,38 +28,56 @@ import java.time.temporal.ChronoUnit
 import kotlin.test.assertEquals
 
 class PricingRulesTest {
-
     private val hotel = Hotel(id = 1, name = "H", address = Address(country = "DE", city = "Berlin"))
-    private val room = Room(
-        id = 1,
-        hotel = hotel,
-        roomType = RoomType(id = 1, name = "T", tier = RoomTier.STANDARD, basePrice = BigDecimal(100), capacity = 2),
-        roomNumber = "101"
-    )
+    private val room =
+        Room(
+            id = 1,
+            hotel = hotel,
+            roomType = RoomType(id = 1, name = "T", tier = RoomTier.STANDARD, basePrice = BigDecimal(100), capacity = 2),
+            roomNumber = "101",
+        )
 
-    private fun context(checkIn: String, checkOut: String, coupon: String? = null) =
-        PricingContext(room, LocalDate.parse(checkIn), LocalDate.parse(checkOut), coupon)
+    private fun context(
+        checkIn: String,
+        checkOut: String,
+        coupon: String? = null,
+    ) = PricingContext(room, LocalDate.parse(checkIn), LocalDate.parse(checkOut), coupon)
 
-    private fun assertPrice(expected: String, actual: BigDecimal) =
-        assertEquals(BigDecimal(expected), actual.setScale(2, RoundingMode.HALF_UP))
+    private fun assertPrice(
+        expected: String,
+        actual: BigDecimal,
+    ) = assertEquals(BigDecimal(expected), actual.setScale(2, RoundingMode.HALF_UP))
 
-    private fun occupancy(rate: String, price: String): BigDecimal {
+    private fun occupancy(
+        rate: String,
+        price: String,
+    ): BigDecimal {
         val repository = mock(HotelRepository::class.java)
         `when`(repository.findOccupancyRate(1, LocalDate.parse("2026-12-10"), null)).thenReturn(BigDecimal(rate))
         return OccupancyRule(repository).apply(context("2026-12-10", "2026-12-12"), BigDecimal(price))
     }
 
-    private fun weekend(multiplier: String?, checkIn: String, checkOut: String): BigDecimal {
+    private fun weekend(
+        multiplier: String?,
+        checkIn: String,
+        checkOut: String,
+    ): BigDecimal {
         val repository = mock(WeekendRateRepository::class.java)
         `when`(repository.findByHotelIdAndActiveTrue(1))
             .thenReturn(multiplier?.let { WeekendRate(hotel = hotel, priceMultiplier = BigDecimal(it)) })
         return WeekendRule(repository).apply(context(checkIn, checkOut), BigDecimal(300))
     }
 
-    private fun code(value: Int, type: DiscountType = DiscountType.PERCENTAGE, validUntil: Instant? = null) =
-        CouponCode(discountValue = BigDecimal(value), code = "CODE", active = true, discountType = type, validUntil = validUntil)
+    private fun code(
+        value: Int,
+        type: DiscountType = DiscountType.PERCENTAGE,
+        validUntil: Instant? = null,
+    ) = CouponCode(discountValue = BigDecimal(value), code = "CODE", active = true, discountType = type, validUntil = validUntil)
 
-    private fun coupon(coupon: CouponCode?, price: String): BigDecimal {
+    private fun coupon(
+        coupon: CouponCode?,
+        price: String,
+    ): BigDecimal {
         val repository = mock(CouponCodeRepository::class.java)
         `when`(repository.findByCodeAndActiveTrue("CODE")).thenReturn(coupon)
         return CouponRule(repository).apply(context("2026-12-10", "2026-12-12", "CODE"), BigDecimal(price))

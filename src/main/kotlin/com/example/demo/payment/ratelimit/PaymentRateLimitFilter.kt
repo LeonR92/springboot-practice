@@ -15,18 +15,18 @@ import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
-
 @Component
 class PaymentRateLimitFilter(
     @Value("\${payment.rate-limit.max-requests}") private val maxRequests: Long,
-    @Value("\${payment.rate-limit.window-seconds}") private val windowSeconds: Long
+    @Value("\${payment.rate-limit.window-seconds}") private val windowSeconds: Long,
 ) : OncePerRequestFilter() {
-
     private val buckets = ConcurrentHashMap<String, Bucket>()
 
-    private fun newBucket(): Bucket = Bucket.builder()
-        .addLimit { it.capacity(maxRequests).refillGreedy(maxRequests, Duration.ofSeconds(windowSeconds)) }
-        .build()
+    private fun newBucket(): Bucket =
+        Bucket
+            .builder()
+            .addLimit { it.capacity(maxRequests).refillGreedy(maxRequests, Duration.ofSeconds(windowSeconds)) }
+            .build()
 
     override fun shouldNotFilter(request: HttpServletRequest): Boolean {
         val path = request.requestURI
@@ -38,7 +38,7 @@ class PaymentRateLimitFilter(
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        chain: FilterChain
+        chain: FilterChain,
     ) {
         val bucket = buckets.computeIfAbsent(clientKey(request)) { newBucket() }
         val probe = bucket.tryConsumeAndReturnRemaining(1)
@@ -56,8 +56,11 @@ class PaymentRateLimitFilter(
 
     private fun clientKey(request: HttpServletRequest): String {
         val auth = SecurityContextHolder.getContext().authentication
-        return if (auth != null && auth.isAuthenticated && auth.name != "anonymousUser") "user:${auth.name}"
-        else "ip:${request.remoteAddr}"
+        return if (auth != null && auth.isAuthenticated && auth.name != "anonymousUser") {
+            "user:${auth.name}"
+        } else {
+            "ip:${request.remoteAddr}"
+        }
     }
 
     @Scheduled(fixedDelay = 60_000)

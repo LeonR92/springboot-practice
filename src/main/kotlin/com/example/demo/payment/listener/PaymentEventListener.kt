@@ -10,9 +10,8 @@ import org.springframework.transaction.event.TransactionalEventListener
 
 @Component
 class PaymentEventListener(
-    private val sendInvoiceViaEmail: SendInvoiceViaEmail
+    private val sendInvoiceViaEmail: SendInvoiceViaEmail,
 ) {
-
     private val log = LoggerFactory.getLogger(javaClass)
 
     @Async

@@ -16,19 +16,20 @@ data class ReservationResponse(
     val checkOut: LocalDate,
     val status: ReservationStatus,
     val totalPrice: BigDecimal,
-    val couponCode: String?
+    val couponCode: String?,
 )
 
-fun Reservation.toResponse() = ReservationResponse(
-    id = requireNotNull(id),
-    roomId = requireNotNull(room.id),
-    hotelId = requireNotNull(room.hotel.id),
-    roomNumber = room.roomNumber,
-    guestName = guestName,
-    guestEmail = guestEmail,
-    checkIn = checkIn,
-    checkOut = checkOut,
-    status = status,
-    totalPrice = totalPrice,
-    couponCode = couponCode
-)
+fun Reservation.toResponse() =
+    ReservationResponse(
+        id = requireNotNull(id),
+        roomId = requireNotNull(room.id),
+        hotelId = requireNotNull(room.hotel.id),
+        roomNumber = room.roomNumber,
+        guestName = guestName,
+        guestEmail = guestEmail,
+        checkIn = checkIn,
+        checkOut = checkOut,
+        status = status,
+        totalPrice = totalPrice,
+        couponCode = couponCode,
+    )

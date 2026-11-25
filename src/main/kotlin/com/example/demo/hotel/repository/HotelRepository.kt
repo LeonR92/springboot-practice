@@ -9,7 +9,6 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 interface HotelRepository : JpaRepository<Hotel, Long> {
-
     // Load amenities in the same query so listing hotels doesn't trigger one extra query per hotel
     @EntityGraph(attributePaths = ["amenities"])
     override fun findAll(): List<Hotel>
@@ -32,11 +31,11 @@ interface HotelRepository : JpaRepository<Hotel, Long> {
                 AND (:excludeReservationId IS NULL OR res.id <> :excludeReservationId)
             WHERE r.hotel_id = :hotelId
         """,
-        nativeQuery = true
+        nativeQuery = true,
     )
     fun findOccupancyRate(
         @Param("hotelId") hotelId: Long,
         @Param("date") date: LocalDate,
-        @Param("excludeReservationId") excludeReservationId: Long? = null
+        @Param("excludeReservationId") excludeReservationId: Long? = null,
     ): BigDecimal
 }

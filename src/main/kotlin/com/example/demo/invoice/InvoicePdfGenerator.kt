@@ -6,8 +6,10 @@ import org.springframework.stereotype.Component
 
 @Component
 class InvoicePdfGenerator {
-
-    fun generate(payment: Payment, reservation: Reservation): ByteArray =
+    fun generate(
+        payment: Payment,
+        reservation: Reservation,
+    ): ByteArray =
         """
         %PDF-1.4
         FAKE INVOICE #${payment.id}

@@ -19,22 +19,25 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/v1/hotels/{hotelId}/rooms")
 class RoomController(
-    private val service: RoomService
+    private val service: RoomService,
 ) {
-
     @GetMapping
-    fun getRooms(@PathVariable hotelId: Long): List<RoomResponse> = service.getRooms(hotelId)
+    fun getRooms(
+        @PathVariable hotelId: Long,
+    ): List<RoomResponse> = service.getRooms(hotelId)
 
     @GetMapping("/{id}")
-    fun getRoomById(@PathVariable hotelId: Long, @PathVariable id: Long): RoomResponse =
-        service.getRoom(hotelId, id)
+    fun getRoomById(
+        @PathVariable hotelId: Long,
+        @PathVariable id: Long,
+    ): RoomResponse = service.getRoom(hotelId, id)
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createRoom(
         @PathVariable hotelId: Long,
-        @Valid @RequestBody request: RoomRequest
+        @Valid @RequestBody request: RoomRequest,
     ): RoomResponse = service.createRoom(hotelId, request)
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -42,12 +45,14 @@ class RoomController(
     fun updateRoom(
         @PathVariable hotelId: Long,
         @PathVariable id: Long,
-        @Valid @RequestBody request: RoomRequest
+        @Valid @RequestBody request: RoomRequest,
     ): RoomResponse = service.updateRoom(hotelId, id, request)
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun deleteRoom(@PathVariable hotelId: Long, @PathVariable id: Long) =
-        service.deleteRoom(hotelId, id)
+    fun deleteRoom(
+        @PathVariable hotelId: Long,
+        @PathVariable id: Long,
+    ) = service.deleteRoom(hotelId, id)
 }

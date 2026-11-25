@@ -14,11 +14,9 @@ import org.springframework.stereotype.Service
 @Service
 class UserService(
     private val repository: UserRepository,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
 ) {
-
-    fun getUsers(): List<UserResponse> =
-        repository.findAll().map { it.toResponse() }
+    fun getUsers(): List<UserResponse> = repository.findAll().map { it.toResponse() }
 
     fun findByEmail(email: String): User? = repository.findByEmail(email)
 
@@ -26,25 +24,31 @@ class UserService(
         if (repository.findByEmail(request.email) != null) {
             throw EmailAlreadyExistsException(request.email)
         }
-        val user = repository.save(
-            User(
-                name = request.name,
-                email = request.email,
-                hashedPassword = requireNotNull(passwordEncoder.encode(request.password))
+        val user =
+            repository.save(
+                User(
+                    name = request.name,
+                    email = request.email,
+                    hashedPassword = requireNotNull(passwordEncoder.encode(request.password)),
+                ),
             )
-        )
         return user.toResponse()
     }
 
     fun deleteUserByEmail(email: String) {
-        val userToDelete = repository.findByEmail(email)
-            ?: throw UserNotFoundException(email)
+        val userToDelete =
+            repository.findByEmail(email)
+                ?: throw UserNotFoundException(email)
         repository.delete(userToDelete)
     }
 
-    fun updateUserByEmail(email: String, request: UpdateUserRequest): UserResponse {
-        val user = repository.findByEmail(email)
-            ?: throw UserNotFoundException(email)
+    fun updateUserByEmail(
+        email: String,
+        request: UpdateUserRequest,
+    ): UserResponse {
+        val user =
+            repository.findByEmail(email)
+                ?: throw UserNotFoundException(email)
 
         request.email?.let { newEmail ->
             if (newEmail != user.email && repository.findByEmail(newEmail) != null) {

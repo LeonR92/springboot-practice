@@ -10,14 +10,12 @@ import java.util.TreeMap
 @Component
 @Order(PricingOrder.OCCUPANCY)
 class OccupancyRule(
-    private val repository: HotelRepository
+    private val repository: HotelRepository,
 ) : PricingRule {
-
     override fun apply(
         context: PricingContext,
-        currentPrice: BigDecimal
+        currentPrice: BigDecimal,
     ): BigDecimal {
-
         val occupancy = repository.findOccupancyRate(context.hotelId, context.checkIn, context.excludeReservationId)
 
         val multiplier = RATES.floorEntry(occupancy)?.value ?: BigDecimal.ONE
@@ -26,9 +24,12 @@ class OccupancyRule(
     }
 }
 
-private val RATES = TreeMap(mapOf(
-    BigDecimal("0.00") to BigDecimal("0.80"), // 20% discount
-    BigDecimal("0.30") to BigDecimal("0.90"),
-    BigDecimal("0.50") to BigDecimal("1.00"),
-    BigDecimal("0.90") to BigDecimal("1.30")  // 30% surcharge
-))
+private val RATES =
+    TreeMap(
+        mapOf(
+            BigDecimal("0.00") to BigDecimal("0.80"), // 20% discount
+            BigDecimal("0.30") to BigDecimal("0.90"),
+            BigDecimal("0.50") to BigDecimal("1.00"),
+            BigDecimal("0.90") to BigDecimal("1.30"), // 30% surcharge
+        ),
+    )

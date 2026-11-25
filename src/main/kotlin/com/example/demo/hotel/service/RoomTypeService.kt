@@ -15,33 +15,35 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class RoomTypeService(
     private val repository: RoomTypeRepository,
-    private val roomRepository: RoomRepository
+    private val roomRepository: RoomRepository,
 ) {
     @Transactional(readOnly = true)
-    fun getAll(): List<RoomTypeResponse> =
-        repository.findAll().map { it.toResponse() }
+    fun getAll(): List<RoomTypeResponse> = repository.findAll().map { it.toResponse() }
 
     @Transactional(readOnly = true)
-    fun getById(id: Long): RoomTypeResponse =
-        findRoomType(id).toResponse()
+    fun getById(id: Long): RoomTypeResponse = findRoomType(id).toResponse()
 
     @Transactional
     fun create(request: RoomTypeRequest): RoomTypeResponse {
         if (repository.existsByName(request.name)) {
             throw RoomTypeAlreadyExistsException(request.name)
         }
-        val roomType = RoomType(
-            name = request.name,
-            tier = request.tier,
-            basePrice = request.basePrice,
-            capacity = request.capacity,
-            description = request.description
-        )
+        val roomType =
+            RoomType(
+                name = request.name,
+                tier = request.tier,
+                basePrice = request.basePrice,
+                capacity = request.capacity,
+                description = request.description,
+            )
         return repository.save(roomType).toResponse()
     }
 
     @Transactional
-    fun update(id: Long, request: RoomTypeRequest): RoomTypeResponse {
+    fun update(
+        id: Long,
+        request: RoomTypeRequest,
+    ): RoomTypeResponse {
         val roomType = findRoomType(id)
 
         if (repository.existsByNameAndIdNot(request.name, id)) {
@@ -66,6 +68,5 @@ class RoomTypeService(
         repository.delete(roomType)
     }
 
-    private fun findRoomType(id: Long): RoomType =
-        repository.findById(id).orElseThrow { RoomTypeNotFoundException(id) }
+    private fun findRoomType(id: Long): RoomType = repository.findById(id).orElseThrow { RoomTypeNotFoundException(id) }
 }

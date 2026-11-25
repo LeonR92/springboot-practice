@@ -4,15 +4,18 @@ import com.example.demo.support.IntegrationTest
 import org.junit.jupiter.api.Test
 
 class AuthIT : IntegrationTest() {
-
     private val register = "/api/v1/auth/register"
     private val login = "/api/v1/auth/login"
 
-    private fun registerBody(email: String = "ann@test.com", password: String = "password1") =
-        """{"name":"Ann","email":"$email","password":"$password"}"""
+    private fun registerBody(
+        email: String = "ann@test.com",
+        password: String = "password1",
+    ) = """{"name":"Ann","email":"$email","password":"$password"}"""
 
-    private fun loginBody(email: String = "ann@test.com", password: String = "password1") =
-        """{"email":"$email","password":"$password"}"""
+    private fun loginBody(
+        email: String = "ann@test.com",
+        password: String = "password1",
+    ) = """{"email":"$email","password":"$password"}"""
 
     @Test
     fun `register creates a user and rejects duplicates`() {
@@ -35,9 +38,11 @@ class AuthIT : IntegrationTest() {
     fun `login returns a token that opens protected routes`() {
         post(register, registerBody())
 
-        val token = post(login, loginBody())
-            .andExpect { status { isOk() } }
-            .body().json<String>("$.token")
+        val token =
+            post(login, loginBody())
+                .andExpect { status { isOk() } }
+                .body()
+                .json<String>("$.token")
 
         get("/api/v1/hotels", "Bearer $token").andExpect { status { isOk() } }
     }

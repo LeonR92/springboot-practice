@@ -10,13 +10,9 @@ data class HotelRequest(
     @field:NotBlank
     @field:Size(max = 255)
     val name: String,
-
     @field:Valid
     val address: Address,
-
     val checkInTime: LocalTime = LocalTime.of(15, 0),
-
     val checkOutTime: LocalTime = LocalTime.of(10, 0),
-
-    val amenityIds: Set<Long> = emptySet()
+    val amenityIds: Set<Long> = emptySet(),
 )

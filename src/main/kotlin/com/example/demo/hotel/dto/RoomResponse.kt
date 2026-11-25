@@ -9,14 +9,15 @@ data class RoomResponse(
     val roomNumber: String,
     val floor: Int?,
     val status: RoomStatus,
-    val roomType: RoomTypeResponse
+    val roomType: RoomTypeResponse,
 )
 
-fun Room.toResponse() = RoomResponse(
-    id = requireNotNull(id),
-    hotelId = requireNotNull(hotel.id),
-    roomNumber = roomNumber,
-    floor = floor,
-    status = status,
-    roomType = roomType.toResponse()
-)
+fun Room.toResponse() =
+    RoomResponse(
+        id = requireNotNull(id),
+        hotelId = requireNotNull(hotel.id),
+        roomNumber = roomNumber,
+        floor = floor,
+        status = status,
+        roomType = roomType.toResponse(),
+    )

@@ -14,16 +14,17 @@ data class PaymentResponse(
     val amount: BigDecimal,
     val status: PaymentStatus,
     val token: String?,
-    val createdAt: Instant
+    val createdAt: Instant,
 )
 
-fun Payment.toResponse() = PaymentResponse(
-    id = requireNotNull(id),
-    userId = userId,
-    reservationId = reservationId,
-    method = method,
-    amount = amount,
-    status = status,
-    token = token,
-    createdAt = createdAt
-)
+fun Payment.toResponse() =
+    PaymentResponse(
+        id = requireNotNull(id),
+        userId = userId,
+        reservationId = reservationId,
+        method = method,
+        amount = amount,
+        status = status,
+        token = token,
+        createdAt = createdAt,
+    )

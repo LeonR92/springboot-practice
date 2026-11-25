@@ -6,7 +6,6 @@ import org.springframework.test.context.TestPropertySource
 
 @TestPropertySource(properties = ["payment.rate-limit.max-requests=3"])
 class PaymentRateLimitIT : IntegrationTest() {
-
     private val payment = paymentBody(999, "STRIPE")
 
     @Test

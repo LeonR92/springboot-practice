@@ -14,13 +14,14 @@ class SendInvoiceViaEmail(
     private val paymentRepository: PaymentRepository,
     private val reservationRepository: ReservationRepository,
     private val pdfGenerator: InvoicePdfGenerator,
-    private val emailProvider: EmailProvider
+    private val emailProvider: EmailProvider,
 ) {
-
     fun send(paymentId: Long) {
         val payment = paymentRepository.findById(paymentId).orElseThrow { PaymentNotFoundException(paymentId) }
-        val reservation = reservationRepository.findById(payment.reservationId)
-            .orElseThrow { ReservationNotFoundException(payment.reservationId) }
+        val reservation =
+            reservationRepository
+                .findById(payment.reservationId)
+                .orElseThrow { ReservationNotFoundException(payment.reservationId) }
 
         val pdf = pdfGenerator.generate(payment, reservation)
 
@@ -29,8 +30,8 @@ class SendInvoiceViaEmail(
                 to = reservation.guestEmail,
                 subject = "Your invoice #$paymentId",
                 body = "Hello ${reservation.guestName}, thank you for your payment. Your invoice is attached.",
-                attachments = listOf(EmailAttachment("invoice-$paymentId.pdf", "application/pdf", pdf))
-            )
+                attachments = listOf(EmailAttachment("invoice-$paymentId.pdf", "application/pdf", pdf)),
+            ),
         )
     }
 }

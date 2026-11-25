@@ -7,12 +7,13 @@ data class UserResponse(
     val id: Long,
     val name: String,
     val email: String,
-    val role: UserRole
+    val role: UserRole,
 )
 
-fun User.toResponse() = UserResponse(
-    id = requireNotNull(id),
-    name = name,
-    email = email,
-    role = role
-)
+fun User.toResponse() =
+    UserResponse(
+        id = requireNotNull(id),
+        name = name,
+        email = email,
+        role = role,
+    )

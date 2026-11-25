@@ -14,19 +14,23 @@ import java.time.Instant
 class JwtService(
     private val jwtEncoder: JwtEncoder,
     @Value("\${jwt.issuer}") private val issuer: String,
-    @Value("\${jwt.expiration-seconds}") private val expirationSeconds: Long
+    @Value("\${jwt.expiration-seconds}") private val expirationSeconds: Long,
 ) {
-
-    fun generateToken(userId: Long, role: UserRole): String {
+    fun generateToken(
+        userId: Long,
+        role: UserRole,
+    ): String {
         val now = Instant.now()
 
-        val claims = JwtClaimsSet.builder()
-            .issuer(issuer)
-            .claim("role", role.name)
-            .subject(userId.toString())
-            .issuedAt(now)
-            .expiresAt(now.plusSeconds(expirationSeconds))
-            .build()
+        val claims =
+            JwtClaimsSet
+                .builder()
+                .issuer(issuer)
+                .claim("role", role.name)
+                .subject(userId.toString())
+                .issuedAt(now)
+                .expiresAt(now.plusSeconds(expirationSeconds))
+                .build()
 
         val header = JwsHeader.with(MacAlgorithm.HS256).build()
 

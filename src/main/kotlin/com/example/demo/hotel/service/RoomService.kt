@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional
 class RoomService(
     private val repository: RoomRepository,
     private val hotelRepository: HotelRepository,
-    private val roomTypeRepository: RoomTypeRepository
+    private val roomTypeRepository: RoomTypeRepository,
 ) {
     @Transactional(readOnly = true)
     fun getRooms(hotelId: Long): List<RoomResponse> {
@@ -28,11 +28,16 @@ class RoomService(
     }
 
     @Transactional(readOnly = true)
-    fun getRoom(hotelId: Long, id: Long): RoomResponse =
-        findRoom(hotelId, id).toResponse()
+    fun getRoom(
+        hotelId: Long,
+        id: Long,
+    ): RoomResponse = findRoom(hotelId, id).toResponse()
 
     @Transactional
-    fun createRoom(hotelId: Long, request: RoomRequest): RoomResponse {
+    fun createRoom(
+        hotelId: Long,
+        request: RoomRequest,
+    ): RoomResponse {
         requireHotelExists(hotelId)
         val roomType = requireRoomType(request.roomTypeId)
 
@@ -40,18 +45,23 @@ class RoomService(
             throw RoomAlreadyExistsException(request.roomNumber)
         }
 
-        val room = Room(
-            hotel = hotelRepository.getReferenceById(hotelId),
-            roomType = roomType,
-            roomNumber = request.roomNumber,
-            floor = request.floor,
-            status = request.status
-        )
+        val room =
+            Room(
+                hotel = hotelRepository.getReferenceById(hotelId),
+                roomType = roomType,
+                roomNumber = request.roomNumber,
+                floor = request.floor,
+                status = request.status,
+            )
         return repository.save(room).toResponse()
     }
 
     @Transactional
-    fun updateRoom(hotelId: Long, id: Long, request: RoomRequest): RoomResponse {
+    fun updateRoom(
+        hotelId: Long,
+        id: Long,
+        request: RoomRequest,
+    ): RoomResponse {
         val room = findRoom(hotelId, id)
         val roomType = requireRoomType(request.roomTypeId)
 
@@ -68,17 +78,21 @@ class RoomService(
     }
 
     @Transactional
-    fun deleteRoom(hotelId: Long, id: Long) {
+    fun deleteRoom(
+        hotelId: Long,
+        id: Long,
+    ) {
         repository.delete(findRoom(hotelId, id))
     }
 
-    private fun findRoom(hotelId: Long, id: Long): Room =
-        repository.findByIdAndHotelId(id, hotelId) ?: throw RoomNotFoundException(id)
+    private fun findRoom(
+        hotelId: Long,
+        id: Long,
+    ): Room = repository.findByIdAndHotelId(id, hotelId) ?: throw RoomNotFoundException(id)
 
     private fun requireHotelExists(hotelId: Long) {
         if (!hotelRepository.existsById(hotelId)) throw HotelNotFoundException(hotelId)
     }
 
-    private fun requireRoomType(id: Long): RoomType =
-        roomTypeRepository.findById(id).orElseThrow { RoomTypeNotFoundException(id) }
+    private fun requireRoomType(id: Long): RoomType = roomTypeRepository.findById(id).orElseThrow { RoomTypeNotFoundException(id) }
 }

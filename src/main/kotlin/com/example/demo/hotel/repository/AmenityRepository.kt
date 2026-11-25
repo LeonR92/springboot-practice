@@ -6,18 +6,22 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 
 interface AmenityRepository : JpaRepository<Amenity, Long> {
-
     fun existsByName(name: String): Boolean
 
-    fun existsByNameAndIdNot(name: String, id: Long): Boolean
+    fun existsByNameAndIdNot(
+        name: String,
+        id: Long,
+    ): Boolean
 
-    @Query("""
+    @Query(
+        """
         select a
         from Hotel h
         Join h.amenities a
         where h.id = :hotelId
-    """)
-    fun findAmenitiesByHotelId(@Param("hotelId") hotelId:Long):List<Amenity>
+    """,
+    )
+    fun findAmenitiesByHotelId(
+        @Param("hotelId") hotelId: Long,
+    ): List<Amenity>
 }
-
-

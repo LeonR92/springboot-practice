@@ -9,16 +9,15 @@ data class AmenityResponse(
     val description: String?,
     val category: AmenityCategory,
     val icon: String?,
-    val isFree: Boolean
+    val isFree: Boolean,
 )
 
-fun Amenity.toResponse(): AmenityResponse {
-    return AmenityResponse(
+fun Amenity.toResponse(): AmenityResponse =
+    AmenityResponse(
         id = requireNotNull(id),
         name = name,
         description = description,
         category = category,
         icon = icon,
-        isFree = isFree
+        isFree = isFree,
     )
-}

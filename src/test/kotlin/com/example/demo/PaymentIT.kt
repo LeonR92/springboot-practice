@@ -1,8 +1,8 @@
 package com.example.demo
 
 import com.example.demo.support.IntegrationTest
-import org.awaitility.kotlin.await
 import org.awaitility.kotlin.atMost
+import org.awaitility.kotlin.await
 import org.awaitility.kotlin.during
 import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.Test
@@ -10,16 +10,21 @@ import java.time.Duration
 import kotlin.test.assertEquals
 
 class PaymentIT : IntegrationTest() {
-
-    private class Started(val paymentId: Long, val reservationId: Long, val token: String)
+    private class Started(
+        val paymentId: Long,
+        val reservationId: Long,
+        val token: String,
+    )
 
     private fun startPayment(
         method: String,
         user: String = userToken(),
-        reservationId: Long = reserve(seedRooms(1).roomIds[0], user)
+        reservationId: Long = reserve(seedRooms(1).roomIds[0], user),
     ): Started {
-        val body = post("/api/v1/payments", paymentBody(reservationId, method), user)
-            .andExpect { status { isCreated() } }.body()
+        val body =
+            post("/api/v1/payments", paymentBody(reservationId, method), user)
+                .andExpect { status { isCreated() } }
+                .body()
         return Started(idOf(body), reservationId, body.json<String?>("$.token").orEmpty())
     }
 

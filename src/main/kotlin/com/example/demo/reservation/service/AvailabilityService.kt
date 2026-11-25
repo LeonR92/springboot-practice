@@ -17,34 +17,37 @@ import java.time.LocalDate
 @Service
 class AvailabilityService(
     private val roomRepository: RoomRepository,
-    private val reservationRepository: ReservationRepository
+    private val reservationRepository: ReservationRepository,
 ) {
-
     @Transactional(readOnly = true)
     fun findAvailability(
         request: AvailabilitySearchRequest,
-        pageable: Pageable
+        pageable: Pageable,
     ): Page<RoomResponse> {
         request.validateBookingDates()
-        return roomRepository.findAvailableRooms(
-            hotelId = request.hotelId,
-            roomTypeId = request.roomTypeId,
-            checkIn = request.checkIn,
-            checkOut = request.checkOut,
-            now = Instant.now(),
-            pageable = pageable
-        ).map { it.toResponse() }
+        return roomRepository
+            .findAvailableRooms(
+                hotelId = request.hotelId,
+                roomTypeId = request.roomTypeId,
+                checkIn = request.checkIn,
+                checkOut = request.checkOut,
+                now = Instant.now(),
+                pageable = pageable,
+            ).map { it.toResponse() }
     }
-
 
     fun isRoomAvailable(
         roomId: Long,
         checkIn: LocalDate,
         checkOut: LocalDate,
-        excludeReservationId: Long? = null
+        excludeReservationId: Long? = null,
     ): Boolean =
         roomRepository.existsByIdAndStatus(roomId, RoomStatus.ACTIVE) &&
             !reservationRepository.existsBlockingReservation(
-                roomId, checkIn, checkOut, Instant.now(), excludeReservationId
+                roomId,
+                checkIn,
+                checkOut,
+                Instant.now(),
+                excludeReservationId,
             )
 }

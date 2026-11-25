@@ -6,8 +6,13 @@ import com.example.demo.payment.model.PaymentStatus
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface PaymentRepository : JpaRepository<Payment, Long> {
+    fun existsByReservationIdAndStatusIn(
+        reservationId: Long,
+        statuses: Collection<PaymentStatus>,
+    ): Boolean
 
-    fun existsByReservationIdAndStatusIn(reservationId: Long, statuses: Collection<PaymentStatus>): Boolean
-
-    fun findByTokenAndMethod(token: String, method: PaymentMethod): Payment?
+    fun findByTokenAndMethod(
+        token: String,
+        method: PaymentMethod,
+    ): Payment?
 }

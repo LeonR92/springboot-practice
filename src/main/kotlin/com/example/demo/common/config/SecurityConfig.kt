@@ -22,14 +22,14 @@ import javax.crypto.spec.SecretKeySpec
 @Configuration
 @EnableMethodSecurity
 class SecurityConfig(
-    @Value("\${jwt.secret}") secret: String
+    @Value("\${jwt.secret}") secret: String,
 ) {
-
-    private val secretKey = secret.toByteArray().let {
-        // HS256 needs a secret of at least 32 bytes
-        require(it.size >= 32) { "JWT secret must be at least 32 bytes" }
-        SecretKeySpec(it, "HmacSHA256")
-    }
+    private val secretKey =
+        secret.toByteArray().let {
+            // HS256 needs a secret of at least 32 bytes
+            require(it.size >= 32) { "JWT secret must be at least 32 bytes" }
+            SecretKeySpec(it, "HmacSHA256")
+        }
 
     @Bean
     fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
@@ -38,17 +38,18 @@ class SecurityConfig(
     fun jwtEncoder(): JwtEncoder = NimbusJwtEncoder(ImmutableSecret(secretKey))
 
     @Bean
-    fun jwtDecoder(): JwtDecoder =
-        NimbusJwtDecoder.withSecretKey(secretKey).macAlgorithm(MacAlgorithm.HS256).build()
+    fun jwtDecoder(): JwtDecoder = NimbusJwtDecoder.withSecretKey(secretKey).macAlgorithm(MacAlgorithm.HS256).build()
 
     // Maps the "role" claim to a ROLE_* authority so hasRole("ADMIN") works
-    private fun jwtAuthenticationConverter() = JwtAuthenticationConverter().apply {
-        setJwtGrantedAuthoritiesConverter { jwt ->
-            jwt.getClaimAsString("role")
-                ?.let { listOf(SimpleGrantedAuthority("ROLE_$it")) }
-                ?: emptyList()
+    private fun jwtAuthenticationConverter() =
+        JwtAuthenticationConverter().apply {
+            setJwtGrantedAuthoritiesConverter { jwt ->
+                jwt
+                    .getClaimAsString("role")
+                    ?.let { listOf(SimpleGrantedAuthority("ROLE_$it")) }
+                    ?: emptyList()
+            }
         }
-    }
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
@@ -56,12 +57,16 @@ class SecurityConfig(
             .csrf { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests {
-                it.requestMatchers("/error", "/api/v1/auth/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
-                    .requestMatchers("/api/v1/payments/webhook/**").permitAll()
-                    .requestMatchers("/actuator/health/**").permitAll()
-                    .anyRequest().authenticated()
-            }
-            .oauth2ResourceServer { it.jwt { jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()) } }
+                it
+                    .requestMatchers("/error", "/api/v1/auth/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
+                    .permitAll()
+                    .requestMatchers("/api/v1/payments/webhook/**")
+                    .permitAll()
+                    .requestMatchers("/actuator/health/**")
+                    .permitAll()
+                    .anyRequest()
+                    .authenticated()
+            }.oauth2ResourceServer { it.jwt { jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()) } }
         return http.build()
     }
 }

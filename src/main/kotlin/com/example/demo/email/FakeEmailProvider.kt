@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component
 
 @Component
 class FakeEmailProvider : EmailProvider {
-
     private val log = LoggerFactory.getLogger(javaClass)
 
     override fun send(message: EmailMessage) {
@@ -13,7 +12,7 @@ class FakeEmailProvider : EmailProvider {
             "FAKE EMAIL to={} subject='{}' attachments={}",
             message.to,
             message.subject,
-            message.attachments.map { "${it.filename} (${it.content.size} bytes)" }
+            message.attachments.map { "${it.filename} (${it.content.size} bytes)" },
         )
     }
 }

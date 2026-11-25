@@ -21,24 +21,25 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/v1/payments")
 class PaymentController(
     private val service: PaymentService,
-    private val webhookVerifier: WebhookVerifier
+    private val webhookVerifier: WebhookVerifier,
 ) {
-
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun createPayment(@Valid @RequestBody request: PaymentRequest): PaymentResponse =
-        service.createPayment(request)
+    fun createPayment(
+        @Valid @RequestBody request: PaymentRequest,
+    ): PaymentResponse = service.createPayment(request)
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{id}/confirm")
-    fun confirmPayment(@PathVariable id: Long): PaymentResponse = service.confirmPayment(id)
+    fun confirmPayment(
+        @PathVariable id: Long,
+    ): PaymentResponse = service.confirmPayment(id)
 
     @PostMapping("/webhook/{method}")
     fun webhook(
         @PathVariable method: PaymentMethod,
         @RequestHeader("X-Webhook-Secret", required = false) secret: String?,
-        @Valid @RequestBody request: PaymentWebhookRequest
+        @Valid @RequestBody request: PaymentWebhookRequest,
     ): PaymentResponse {
         webhookVerifier.verify(secret)
         return service.confirmByToken(method, request.token)

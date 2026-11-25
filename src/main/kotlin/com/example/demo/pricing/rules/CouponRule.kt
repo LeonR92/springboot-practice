@@ -13,24 +13,25 @@ import java.time.Instant
 @Component
 @Order(PricingOrder.COUPON)
 class CouponRule(
-    private val repository: CouponCodeRepository
+    private val repository: CouponCodeRepository,
 ) : PricingRule {
-
     override fun apply(
         context: PricingContext,
-        currentPrice: BigDecimal
+        currentPrice: BigDecimal,
     ): BigDecimal {
-
         val code = context.couponCode ?: return currentPrice
 
         val now = Instant.now()
-        val coupon = repository.findByCodeAndActiveTrue(code)
-            ?.takeIf { (it.validFrom?.isAfter(now) != true) && (it.validUntil?.isBefore(now) != true) }
-            ?: throw InvalidCouponException(code)
+        val coupon =
+            repository
+                .findByCodeAndActiveTrue(code)
+                ?.takeIf { (it.validFrom?.isAfter(now) != true) && (it.validUntil?.isBefore(now) != true) }
+                ?: throw InvalidCouponException(code)
 
         return when (coupon.discountType) {
-            DiscountType.FIXED_AMOUNT ->
+            DiscountType.FIXED_AMOUNT -> {
                 (currentPrice - coupon.discountValue).max(BigDecimal.ZERO)
+            }
 
             DiscountType.PERCENTAGE -> {
                 val percent = coupon.discountValue.coerceIn(BigDecimal.ZERO, HUNDRED)

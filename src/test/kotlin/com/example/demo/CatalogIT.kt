@@ -4,7 +4,6 @@ import com.example.demo.support.IntegrationTest
 import org.junit.jupiter.api.Test
 
 class CatalogIT : IntegrationTest() {
-
     private val hotelBody = """{"name":"Grand","address":{"country":"DE","city":"Berlin"}}"""
     private val typeBody = """{"name":"Deluxe","tier":"DELUXE","basePrice":150.00,"capacity":2}"""
 
@@ -12,11 +11,12 @@ class CatalogIT : IntegrationTest() {
     fun `admin manages a hotel with amenities`() {
         val token = adminToken()
         val amenityId = create("/api/v1/amenities", """{"name":"Pool","category":"WELLNESS"}""", token)
-        val hotelId = create(
-            "/api/v1/hotels",
-            """{"name":"Grand","address":{"country":"DE","city":"Berlin"},"amenityIds":[$amenityId]}""",
-            token
-        )
+        val hotelId =
+            create(
+                "/api/v1/hotels",
+                """{"name":"Grand","address":{"country":"DE","city":"Berlin"},"amenityIds":[$amenityId]}""",
+                token,
+            )
 
         get("/api/v1/hotels/$hotelId", token).andExpect {
             jsonPath("$.name") { value("Grand") }

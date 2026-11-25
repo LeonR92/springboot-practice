@@ -12,34 +12,35 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class AmenityService(
-    private val repository: AmenityRepository
+    private val repository: AmenityRepository,
 ) {
     // CRUD
     fun create(request: AmenityRequest): AmenityResponse {
         if (repository.existsByName(request.name)) {
             throw AmenityAlreadyExistsException(request.name)
         }
-        val amenity = Amenity(
-            name = request.name,
-            description = request.description,
-            category = request.category,
-            icon = request.icon,
-            isFree = request.isFree
-        )
+        val amenity =
+            Amenity(
+                name = request.name,
+                description = request.description,
+                category = request.category,
+                icon = request.icon,
+                isFree = request.isFree,
+            )
         return repository.save(amenity).toResponse()
     }
 
-    fun getAll(): List<AmenityResponse> =
-        repository.findAll().map { it.toResponse() }
+    fun getAll(): List<AmenityResponse> = repository.findAll().map { it.toResponse() }
 
-    fun getById(id: Long): AmenityResponse =
-        findAmenity(id).toResponse()
+    fun getById(id: Long): AmenityResponse = findAmenity(id).toResponse()
 
-    fun getAmenitiesByHotelId(hotelId: Long): List<AmenityResponse> =
-        repository.findAmenitiesByHotelId(hotelId).map { it.toResponse() }
+    fun getAmenitiesByHotelId(hotelId: Long): List<AmenityResponse> = repository.findAmenitiesByHotelId(hotelId).map { it.toResponse() }
 
     @Transactional
-    fun update(id: Long, request: AmenityRequest): AmenityResponse {
+    fun update(
+        id: Long,
+        request: AmenityRequest,
+    ): AmenityResponse {
         val amenity = findAmenity(id)
 
         if (repository.existsByNameAndIdNot(request.name, id)) {
@@ -60,6 +61,5 @@ class AmenityService(
         repository.delete(findAmenity(id))
     }
 
-    private fun findAmenity(id: Long): Amenity =
-        repository.findById(id).orElseThrow { AmenityNotFoundException(id) }
+    private fun findAmenity(id: Long): Amenity = repository.findById(id).orElseThrow { AmenityNotFoundException(id) }
 }

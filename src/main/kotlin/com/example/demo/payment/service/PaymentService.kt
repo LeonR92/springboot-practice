@@ -27,14 +27,15 @@ class PaymentService(
     private val repository: PaymentRepository,
     private val reservationRepository: ReservationRepository,
     private val eventPublisher: ApplicationEventPublisher,
-    providers: List<PaymentProvider>
+    providers: List<PaymentProvider>,
 ) {
     private val paymentProviders = providers.associateBy { it.method }
 
     @Transactional
     fun createPayment(request: PaymentRequest): PaymentResponse {
-        val reservation = reservationRepository.findByIdForUpdate(request.reservationId)
-            ?: throw ReservationNotFoundException(request.reservationId)
+        val reservation =
+            reservationRepository.findByIdForUpdate(request.reservationId)
+                ?: throw ReservationNotFoundException(request.reservationId)
 
         if (reservation.status != ReservationStatus.PENDING) {
             throw ReservationNotPayableException(request.reservationId, reservation.status.name)
@@ -47,13 +48,14 @@ class PaymentService(
         }
 
         val provider = paymentProviders.getValue(request.method)
-        val payment = Payment(
-            userId = request.userId,
-            reservationId = request.reservationId,
-            method = request.method,
-            amount = reservation.totalPrice,
-            status = provider.initialStatus
-        )
+        val payment =
+            Payment(
+                userId = request.userId,
+                reservationId = request.reservationId,
+                method = request.method,
+                amount = reservation.totalPrice,
+                status = provider.initialStatus,
+            )
         provider.initiate(payment, reservation)
 
         return repository.save(payment).toResponse()
@@ -64,10 +66,13 @@ class PaymentService(
         confirm(repository.findById(paymentId).orElseThrow { PaymentNotFoundException(paymentId) })
 
     @Transactional
-    fun confirmByToken(method: PaymentMethod, token: String): PaymentResponse =
+    fun confirmByToken(
+        method: PaymentMethod,
+        token: String,
+    ): PaymentResponse =
         confirm(
             repository.findByTokenAndMethod(token, method)
-                ?: throw PaymentNotFoundException("Payment with token $token not found")
+                ?: throw PaymentNotFoundException("Payment with token $token not found"),
         )
 
     private fun confirm(payment: Payment): PaymentResponse {
@@ -77,8 +82,9 @@ class PaymentService(
             throw PaymentNotConfirmableException(requireNotNull(payment.id), payment.status.name)
         }
 
-        val reservation = reservationRepository.findByIdForUpdate(payment.reservationId)
-            ?: throw ReservationNotFoundException(payment.reservationId)
+        val reservation =
+            reservationRepository.findByIdForUpdate(payment.reservationId)
+                ?: throw ReservationNotFoundException(payment.reservationId)
 
         // PENDING -> CONFIRMED; CONFIRMED (invoice) stays. EXPIRED/CANCELLED means money arrived for a dead
         // reservation: reject so it can be refunded instead of silently confirming.

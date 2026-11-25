@@ -4,7 +4,6 @@ import com.example.demo.support.IntegrationTest
 import org.junit.jupiter.api.Test
 
 class UserIT : IntegrationTest() {
-
     private val url = "/api/v1/users"
     private val target = "$url?email=n@test.com"
     private val newUser = """{"name":"N","email":"n@test.com","password":"password1"}"""

@@ -10,7 +10,7 @@ data class PricingContext(
     val checkOut: LocalDate,
     val couponCode: String? = null,
     // When re-pricing an existing reservation, it must not count towards the occupancy it is priced against
-    val excludeReservationId: Long? = null
+    val excludeReservationId: Long? = null,
 ) {
     val hotelId: Long = requireNotNull(room.hotel.id)
     val nights: Long = ChronoUnit.DAYS.between(checkIn, checkOut)

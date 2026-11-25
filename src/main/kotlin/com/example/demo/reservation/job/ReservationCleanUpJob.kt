@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class ReservationCleanUpJob(
-    private val reservationService: ReservationService
+    private val reservationService: ReservationService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 

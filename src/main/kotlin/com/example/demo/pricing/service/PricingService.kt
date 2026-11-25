@@ -9,14 +9,14 @@ import java.math.RoundingMode
 @Service
 class PricingService(
     // Spring injects the rules sorted by their @Order (see PricingOrder)
-    private val rules: List<PricingRule>
+    private val rules: List<PricingRule>,
 ) {
-
     fun execute(
         context: PricingContext,
-        basePrice: BigDecimal
+        basePrice: BigDecimal,
     ): BigDecimal =
-        rules.fold(basePrice) { currentPrice, rule ->
-            rule.apply(context, currentPrice)
-        }.setScale(2, RoundingMode.HALF_UP)
+        rules
+            .fold(basePrice) { currentPrice, rule ->
+                rule.apply(context, currentPrice)
+            }.setScale(2, RoundingMode.HALF_UP)
 }

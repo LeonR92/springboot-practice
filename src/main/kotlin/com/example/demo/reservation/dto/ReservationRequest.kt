@@ -9,29 +9,22 @@ import java.time.LocalDate
 
 data class ReservationRequest(
     val roomId: Long,
-
     @field:NotBlank
     @field:Size(max = 255)
     val guestName: String,
-
     @field:NotBlank
     @field:Email
     @field:Size(max = 255)
     val guestEmail: String,
-
     val checkIn: LocalDate,
-
     val checkOut: LocalDate,
-
     val status: ReservationStatus = ReservationStatus.PENDING,
-
     @field:Size(max = 50)
-    val couponCode: String? = null
+    val couponCode: String? = null,
 )
 
 // The one place that decides what counts as "no coupon": blank means none.
-fun ReservationRequest.normalizedCoupon(): String? =
-    couponCode?.trim()?.takeIf { it.isNotEmpty() }
+fun ReservationRequest.normalizedCoupon(): String? = couponCode?.trim()?.takeIf { it.isNotEmpty() }
 
 fun ReservationRequest.validateDates() {
     if (!checkOut.isAfter(checkIn)) {
@@ -39,12 +32,11 @@ fun ReservationRequest.validateDates() {
     }
 }
 
-
 data class AvailabilitySearchRequest(
     val hotelId: Long,
     val roomTypeId: Long? = null,
     val checkIn: LocalDate,
-    val checkOut: LocalDate
+    val checkOut: LocalDate,
 )
 
 fun AvailabilitySearchRequest.validateBookingDates() {

@@ -9,8 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import kotlin.test.assertEquals
 
 class ReservationIT : IntegrationTest() {
-
     @Autowired lateinit var coupons: CouponCodeRepository
+
     @Autowired lateinit var reservationService: ReservationService
 
     @Test

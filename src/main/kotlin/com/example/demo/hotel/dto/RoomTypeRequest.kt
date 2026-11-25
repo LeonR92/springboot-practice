@@ -11,15 +11,11 @@ data class RoomTypeRequest(
     @field:NotBlank
     @field:Size(max = 255)
     val name: String,
-
     val tier: RoomTier,
-
     @field:PositiveOrZero
     val basePrice: BigDecimal,
-
     @field:Min(1)
     val capacity: Int,
-
     @field:Size(max = 255)
-    val description: String? = null
+    val description: String? = null,
 )

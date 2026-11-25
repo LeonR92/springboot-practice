@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
-
     @ExceptionHandler(EmailAlreadyExistsException::class)
     @ResponseStatus(HttpStatus.CONFLICT)
     fun handleEmailExists(e: EmailAlreadyExistsException) = mapOf("error" to e.message)

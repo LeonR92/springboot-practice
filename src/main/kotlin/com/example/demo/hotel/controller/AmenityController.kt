@@ -19,34 +19,39 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/v1/amenities")
 class AmenityController(
-    private val service: AmenityService
+    private val service: AmenityService,
 ) {
-
     @GetMapping
     fun getAmenities(): List<AmenityResponse> = service.getAll()
 
     @GetMapping("/{id}")
-    fun getAmenityById(@PathVariable id: Long): AmenityResponse = service.getById(id)
+    fun getAmenityById(
+        @PathVariable id: Long,
+    ): AmenityResponse = service.getById(id)
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun createAmenity(@Valid @RequestBody request: AmenityRequest): AmenityResponse =
-        service.create(request)
+    fun createAmenity(
+        @Valid @RequestBody request: AmenityRequest,
+    ): AmenityResponse = service.create(request)
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     fun updateAmenity(
         @PathVariable id: Long,
-        @Valid @RequestBody request: AmenityRequest
+        @Valid @RequestBody request: AmenityRequest,
     ): AmenityResponse = service.update(id, request)
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun deleteAmenity(@PathVariable id: Long) = service.delete(id)
+    fun deleteAmenity(
+        @PathVariable id: Long,
+    ) = service.delete(id)
 
     @GetMapping("/hotels/{hotelId}")
-    fun getAmenityViaHotelId(@PathVariable hotelId: Long): List<AmenityResponse> =
-        service.getAmenitiesByHotelId(hotelId)
+    fun getAmenityViaHotelId(
+        @PathVariable hotelId: Long,
+    ): List<AmenityResponse> = service.getAmenitiesByHotelId(hotelId)
 }

@@ -19,30 +19,34 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/v1/hotels")
 class HotelController(
-    private val service: HotelService
+    private val service: HotelService,
 ) {
-
     @GetMapping
     fun getHotels(): List<HotelResponse> = service.getHotels()
 
     @GetMapping("/{id}")
-    fun getHotelById(@PathVariable id: Long): HotelResponse = service.getHotelById(id)
+    fun getHotelById(
+        @PathVariable id: Long,
+    ): HotelResponse = service.getHotelById(id)
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun createHotel(@Valid @RequestBody request: HotelRequest): HotelResponse =
-        service.createHotel(request)
+    fun createHotel(
+        @Valid @RequestBody request: HotelRequest,
+    ): HotelResponse = service.createHotel(request)
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     fun updateHotel(
         @PathVariable id: Long,
-        @Valid @RequestBody request: HotelRequest
+        @Valid @RequestBody request: HotelRequest,
     ): HotelResponse = service.updateHotel(id, request)
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun deleteHotel(@PathVariable id: Long) = service.deleteHotel(id)
+    fun deleteHotel(
+        @PathVariable id: Long,
+    ) = service.deleteHotel(id)
 }

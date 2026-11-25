@@ -10,14 +10,15 @@ data class RoomTypeResponse(
     val tier: RoomTier,
     val basePrice: BigDecimal,
     val capacity: Int,
-    val description: String?
+    val description: String?,
 )
 
-fun RoomType.toResponse() = RoomTypeResponse(
-    id = requireNotNull(id),
-    name = name,
-    tier = tier,
-    basePrice = basePrice,
-    capacity = capacity,
-    description = description
-)
+fun RoomType.toResponse() =
+    RoomTypeResponse(
+        id = requireNotNull(id),
+        name = name,
+        tier = tier,
+        basePrice = basePrice,
+        capacity = capacity,
+        description = description,
+    )

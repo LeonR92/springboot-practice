@@ -13,7 +13,10 @@ class InvoicePaymentProvider : PaymentProvider {
     override val initialStatus = PaymentStatus.OUTSTANDING
 
     // Nobody pays within the 15 minute hold, so the stay is confirmed now and the payment stays OUTSTANDING
-    override fun initiate(payment: Payment, reservation: Reservation) {
+    override fun initiate(
+        payment: Payment,
+        reservation: Reservation,
+    ) {
         reservation.status = ReservationStatus.CONFIRMED
     }
 }

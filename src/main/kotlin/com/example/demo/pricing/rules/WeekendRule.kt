@@ -11,28 +11,29 @@ import java.time.DayOfWeek
 @Component
 @Order(PricingOrder.WEEKEND)
 class WeekendRule(
-    private val repository: WeekendRateRepository
+    private val repository: WeekendRateRepository,
 ) : PricingRule {
-
     override fun apply(
         context: PricingContext,
-        currentPrice: BigDecimal
+        currentPrice: BigDecimal,
     ): BigDecimal {
-
-        val weekendNights = context.checkIn
-            .datesUntil(context.checkOut)
-            .filter { it.dayOfWeek == DayOfWeek.SATURDAY || it.dayOfWeek == DayOfWeek.SUNDAY }
-            .count()
+        val weekendNights =
+            context.checkIn
+                .datesUntil(context.checkOut)
+                .filter { it.dayOfWeek == DayOfWeek.SATURDAY || it.dayOfWeek == DayOfWeek.SUNDAY }
+                .count()
 
         if (weekendNights == 0L) return currentPrice
 
-        val rate = repository.findByHotelIdAndActiveTrue(context.hotelId)
-            ?: return currentPrice
+        val rate =
+            repository.findByHotelIdAndActiveTrue(context.hotelId)
+                ?: return currentPrice
 
         // The weekend nights' share of the price so far (scale 10, so no cents are lost before the final rounding)
-        val weekendShare = currentPrice
-            .multiply(weekendNights.toBigDecimal())
-            .divide(context.nights.toBigDecimal(), 10, RoundingMode.HALF_UP)
+        val weekendShare =
+            currentPrice
+                .multiply(weekendNights.toBigDecimal())
+                .divide(context.nights.toBigDecimal(), 10, RoundingMode.HALF_UP)
 
         return currentPrice + weekendShare * (rate.priceMultiplier - BigDecimal.ONE)
     }

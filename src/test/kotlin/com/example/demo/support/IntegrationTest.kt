@@ -13,10 +13,10 @@ import com.example.demo.user.model.User
 import com.example.demo.user.model.UserRole
 import com.example.demo.user.repository.UserRepository
 import com.jayway.jsonpath.JsonPath
-import org.junit.jupiter.api.BeforeEach
-import org.awaitility.kotlin.await
 import org.awaitility.kotlin.atMost
+import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
+import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
@@ -46,27 +46,39 @@ import kotlin.test.assertEquals
 @ActiveProfiles("test")
 @Import(EmailTestConfig::class)
 abstract class IntegrationTest {
-
     @Autowired lateinit var mvc: MockMvc
+
     @Autowired lateinit var jdbc: JdbcTemplate
+
     @Autowired lateinit var users: UserRepository
+
     @Autowired lateinit var hotels: HotelRepository
+
     @Autowired lateinit var roomTypes: RoomTypeRepository
+
     @Autowired lateinit var rooms: RoomRepository
+
     @Autowired lateinit var jwt: JwtService
+
     @Autowired lateinit var emails: RecordingEmailProvider
-    @Value("\${payment.webhook-secret}") lateinit var webhookSecret: String
+
+    @Value("\${payment.webhook-secret}")
+    lateinit var webhookSecret: String
 
     @BeforeEach
     fun cleanDatabase() {
-        jdbc.queryForList(
-            "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name <> 'flyway_schema_history'",
-            String::class.java
-        ).forEach { jdbc.execute("DELETE FROM $it") }
+        jdbc
+            .queryForList(
+                "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name <> 'flyway_schema_history'",
+                String::class.java,
+            ).forEach { jdbc.execute("DELETE FROM $it") }
         emails.sent.clear()
     }
 
-    protected class Seed(val hotelId: Long, val roomIds: List<Long>)
+    protected class Seed(
+        val hotelId: Long,
+        val roomIds: List<Long>,
+    )
 
     protected fun createUser(role: UserRole = UserRole.USER): User {
         val n = counter.incrementAndGet()
@@ -86,32 +98,53 @@ abstract class IntegrationTest {
         return Seed(hotel.id!!, ids)
     }
 
-    protected fun reservationBody(roomId: Long, checkIn: String = "2026-12-10", checkOut: String = "2026-12-12", coupon: String? = null): String {
+    protected fun reservationBody(
+        roomId: Long,
+        checkIn: String = "2026-12-10",
+        checkOut: String = "2026-12-12",
+        coupon: String? = null,
+    ): String {
         val couponField = coupon?.let { ""","couponCode":"$it"""" }.orEmpty()
-        return """{"roomId":$roomId,"guestName":"Guest","guestEmail":"guest@test.com","checkIn":"$checkIn","checkOut":"$checkOut"$couponField}"""
+        return """
+            {"roomId":$roomId,"guestName":"Guest","guestEmail":"guest@test.com",
+             "checkIn":"$checkIn","checkOut":"$checkOut"$couponField}
+            """.trimIndent()
     }
 
-    protected fun reserve(roomId: Long, token: String) = create("/api/v1/reservations", reservationBody(roomId), token)
+    protected fun reserve(
+        roomId: Long,
+        token: String,
+    ) = create("/api/v1/reservations", reservationBody(roomId), token)
 
-    protected fun paymentBody(reservationId: Long, method: String) =
-        """{"userId":1,"reservationId":$reservationId,"method":"$method"}"""
+    protected fun paymentBody(
+        reservationId: Long,
+        method: String,
+    ) = """{"userId":1,"reservationId":$reservationId,"method":"$method"}"""
 
-    protected fun webhook(method: String, token: String, secret: String? = webhookSecret) =
-        post(
-            "/api/v1/payments/webhook/$method",
-            """{"token":"$token"}""",
-            headers = secret?.let { mapOf("X-Webhook-Secret" to it) }.orEmpty()
-        )
+    protected fun webhook(
+        method: String,
+        token: String,
+        secret: String? = webhookSecret,
+    ) = post(
+        "/api/v1/payments/webhook/$method",
+        """{"token":"$token"}""",
+        headers = secret?.let { mapOf("X-Webhook-Secret" to it) }.orEmpty(),
+    )
 
-    protected fun create(url: String, body: String, token: String): Long =
-        idOf(post(url, body, token).andExpect { status { isCreated() } }.body())
+    protected fun create(
+        url: String,
+        body: String,
+        token: String,
+    ): Long = idOf(post(url, body, token).andExpect { status { isCreated() } }.body())
 
     protected fun expireHold(reservationId: Long) {
         jdbc.update("UPDATE reservations SET lock_until = ? WHERE id = ?", Instant.now().minusSeconds(60).toEpochMilli(), reservationId)
     }
 
-    protected fun statusOf(table: String, id: Long): String =
-        jdbc.queryForObject("SELECT status FROM $table WHERE id = ?", String::class.java, id)!!
+    protected fun statusOf(
+        table: String,
+        id: Long,
+    ): String = jdbc.queryForObject("SELECT status FROM $table WHERE id = ?", String::class.java, id)!!
 
     protected fun awaitEmails(count: Int) {
         await atMost Duration.ofSeconds(5) untilAsserted { assertEquals(count, emails.sent.size) }
@@ -123,33 +156,47 @@ abstract class IntegrationTest {
 
     protected fun ResultActionsDsl.body(): String = andReturn().response.contentAsString
 
-    protected fun get(url: String, token: String? = null) =
-        mvc.get(url) { token?.let { header("Authorization", it) } }
+    protected fun get(
+        url: String,
+        token: String? = null,
+    ) = mvc.get(url) { token?.let { header("Authorization", it) } }
 
-    protected fun post(url: String, body: String = "{}", token: String? = null, headers: Map<String, String> = emptyMap()) =
-        mvc.post(url) {
-            contentType = MediaType.APPLICATION_JSON
-            content = body
-            token?.let { header("Authorization", it) }
-            headers.forEach { (k, v) -> header(k, v) }
-        }
+    protected fun post(
+        url: String,
+        body: String = "{}",
+        token: String? = null,
+        headers: Map<String, String> = emptyMap(),
+    ) = mvc.post(url) {
+        contentType = MediaType.APPLICATION_JSON
+        content = body
+        token?.let { header("Authorization", it) }
+        headers.forEach { (k, v) -> header(k, v) }
+    }
 
-    protected fun put(url: String, body: String, token: String? = null) =
-        mvc.put(url) {
-            contentType = MediaType.APPLICATION_JSON
-            content = body
-            token?.let { header("Authorization", it) }
-        }
+    protected fun put(
+        url: String,
+        body: String,
+        token: String? = null,
+    ) = mvc.put(url) {
+        contentType = MediaType.APPLICATION_JSON
+        content = body
+        token?.let { header("Authorization", it) }
+    }
 
-    protected fun patch(url: String, body: String, token: String? = null) =
-        mvc.patch(url) {
-            contentType = MediaType.APPLICATION_JSON
-            content = body
-            token?.let { header("Authorization", it) }
-        }
+    protected fun patch(
+        url: String,
+        body: String,
+        token: String? = null,
+    ) = mvc.patch(url) {
+        contentType = MediaType.APPLICATION_JSON
+        content = body
+        token?.let { header("Authorization", it) }
+    }
 
-    protected fun delete(url: String, token: String? = null) =
-        mvc.delete(url) { token?.let { header("Authorization", it) } }
+    protected fun delete(
+        url: String,
+        token: String? = null,
+    ) = mvc.delete(url) { token?.let { header("Authorization", it) } }
 
     companion object {
         private val counter = AtomicInteger()

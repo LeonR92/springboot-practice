@@ -4,8 +4,6 @@ import com.example.demo.payment.model.PaymentMethod
 
 data class PaymentRequest(
     val userId: Long,
-
     val reservationId: Long,
-
-    val method: PaymentMethod
+    val method: PaymentMethod,
 )

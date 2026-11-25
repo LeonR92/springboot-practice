@@ -16,18 +16,18 @@ import java.time.LocalDate
 @RestController
 @RequestMapping("/v1/hotels/{hotelId}/availability")
 class AvailabilityController(
-    private val service: AvailabilityService
+    private val service: AvailabilityService,
 ) {
-
     @GetMapping
     fun findAvailableRooms(
         @PathVariable hotelId: Long,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) checkIn: LocalDate,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) checkOut: LocalDate,
         @RequestParam(required = false) roomTypeId: Long?,
-        pageable: Pageable
-    ): Page<RoomResponse> = service.findAvailability(
-        AvailabilitySearchRequest(hotelId, roomTypeId, checkIn, checkOut),
-        pageable
-    )
+        pageable: Pageable,
+    ): Page<RoomResponse> =
+        service.findAvailability(
+            AvailabilitySearchRequest(hotelId, roomTypeId, checkIn, checkOut),
+            pageable,
+        )
 }

@@ -4,7 +4,6 @@ import com.example.demo.support.IntegrationTest
 import org.junit.jupiter.api.Test
 
 class HealthIT : IntegrationTest() {
-
     @Test
     fun `health endpoints are public and up`() {
         listOf("/actuator/health", "/actuator/health/liveness", "/actuator/health/readiness").forEach {
