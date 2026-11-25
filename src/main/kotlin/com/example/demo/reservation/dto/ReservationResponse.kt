@@ -17,6 +17,7 @@ data class ReservationResponse(
     val status: ReservationStatus,
     val totalPrice: BigDecimal,
     val couponCode: String?,
+    val userId: Long?,
 )
 
 fun Reservation.toResponse() =
@@ -32,4 +33,5 @@ fun Reservation.toResponse() =
         status = status,
         totalPrice = totalPrice,
         couponCode = couponCode,
+        userId = userId,
     )

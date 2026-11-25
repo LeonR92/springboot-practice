@@ -5,4 +5,5 @@ import jakarta.validation.constraints.NotBlank
 data class PaymentWebhookRequest(
     @field:NotBlank
     val token: String,
+    val success: Boolean,
 )

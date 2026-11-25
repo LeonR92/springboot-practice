@@ -102,6 +102,8 @@ class PaymentIT : IntegrationTest() {
         webhook("STRIPE", "unknown-token").andExpect { status { isNotFound() } }
         webhook("PAYPAL", payment.token).andExpect { status { isNotFound() } }
         webhook("STRIPE", "").andExpect { status { isBadRequest() } }
+        post("/api/v1/payments/webhook/STRIPE", """{"token":"x"}""", headers = mapOf("X-Webhook-Secret" to webhookSecret))
+            .andExpect { status { isBadRequest() } }
 
         assertEquals("PENDING", statusOf("payments", payment.paymentId))
     }
@@ -115,5 +117,40 @@ class PaymentIT : IntegrationTest() {
 
         assertEquals("PENDING", statusOf("payments", payment.paymentId))
         assertEquals(0, emails.sent.size)
+    }
+
+    @Test
+    fun `only the reservation owner or an admin can pay`() {
+        val reservationId = reserve(seedRooms(1).roomIds[0], userToken())
+
+        post("/api/v1/payments", paymentBody(reservationId, "STRIPE"), userToken()).andExpect { status { isForbidden() } }
+        post("/api/v1/payments", paymentBody(reservationId, "STRIPE"), adminToken()).andExpect { status { isCreated() } }
+    }
+
+    @Test
+    fun `payer is taken from the token`() {
+        val owner = createUser()
+        val reservationId = reserve(seedRooms(1).roomIds[0], bearer(owner))
+
+        post("/api/v1/payments", paymentBody(reservationId, "STRIPE"), bearer(owner)).andExpect {
+            status { isCreated() }
+            jsonPath("$.userId") { value(owner.id!!.toInt()) }
+        }
+    }
+
+    @Test
+    fun `failed payment frees the reservation for another attempt`() {
+        val user = userToken()
+        val payment = startPayment("STRIPE", user)
+
+        webhook("STRIPE", payment.token, success = false).andExpect {
+            status { isOk() }
+            jsonPath("$.status") { value("FAILED") }
+        }
+        webhook("STRIPE", payment.token, success = false).andExpect { status { isOk() } }
+        webhook("STRIPE", payment.token).andExpect { status { isConflict() } }
+
+        assertEquals("PENDING", statusOf("reservations", payment.reservationId))
+        post("/api/v1/payments", paymentBody(payment.reservationId, "PAYPAL"), user).andExpect { status { isCreated() } }
     }
 }

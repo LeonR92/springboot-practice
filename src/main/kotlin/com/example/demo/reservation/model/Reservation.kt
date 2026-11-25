@@ -50,4 +50,6 @@ class Reservation(
     var totalPrice: BigDecimal,
     // Coupon the price was calculated with (if any), so a later re-price keeps the discount
     var couponCode: String? = null,
+    // Who booked it. NULL means it predates V7, so only an admin can pay for it.
+    var userId: Long? = null,
 )

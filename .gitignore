@@ -45,3 +45,6 @@ out/
 *.db.bak
 
 logs/
+
+# Local Claude skills
+.claude/skills/

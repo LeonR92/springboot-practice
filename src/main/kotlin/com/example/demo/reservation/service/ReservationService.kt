@@ -8,8 +8,10 @@ import com.example.demo.hotel.model.Room
 import com.example.demo.hotel.repository.RoomRepository
 import com.example.demo.pricing.model.PricingContext
 import com.example.demo.pricing.service.PricingService
-import com.example.demo.reservation.dto.ReservationRequest
+import com.example.demo.reservation.dto.CreateReservationRequest
 import com.example.demo.reservation.dto.ReservationResponse
+import com.example.demo.reservation.dto.StayRequest
+import com.example.demo.reservation.dto.UpdateReservationRequest
 import com.example.demo.reservation.dto.normalizedCoupon
 import com.example.demo.reservation.dto.toResponse
 import com.example.demo.reservation.dto.validateDates
@@ -42,7 +44,10 @@ class ReservationService(
     fun getById(id: Long): ReservationResponse = findReservation(id).toResponse()
 
     @Transactional
-    fun create(request: ReservationRequest): ReservationResponse {
+    fun create(
+        request: CreateReservationRequest,
+        userId: Long,
+    ): ReservationResponse {
         request.validateDates()
         val room = lockRoom(request.roomId)
         requireAvailable(request)
@@ -53,10 +58,11 @@ class ReservationService(
                 guestEmail = request.guestEmail,
                 checkIn = request.checkIn,
                 checkOut = request.checkOut,
-                status = request.status,
+                status = ReservationStatus.PENDING,
                 lockUntil = Instant.now().plus(Duration.ofMinutes(lockDurationMinutes)),
                 totalPrice = calculateTotalPrice(room, request.checkIn, request.checkOut, request.normalizedCoupon()),
                 couponCode = request.normalizedCoupon(),
+                userId = userId,
             )
         return repository.save(reservation).toResponse()
     }
@@ -64,13 +70,16 @@ class ReservationService(
     @Transactional
     fun update(
         id: Long,
-        request: ReservationRequest,
+        request: UpdateReservationRequest,
     ): ReservationResponse {
         request.validateDates()
         val reservation = findReservation(id)
 
         val room = lockRoom(request.roomId)
-        requireAvailable(request, excludeReservationId = id)
+        // A cancelled or expired reservation holds no room, so it is not checked
+        if (request.status != ReservationStatus.CANCELLED && request.status != ReservationStatus.EXPIRED) {
+            requireAvailable(request, excludeReservationId = id)
+        }
 
         // Re-price only when the stay or the coupon changes; otherwise keep the price the guest was quoted.
         val coupon = request.normalizedCoupon() ?: reservation.couponCode
@@ -120,10 +129,9 @@ class ReservationService(
     // Must run after lockRoom, so the check and the save can't interleave with another booking of the same room.
     // A cancelled or expired reservation holds no room, so it is not checked.
     private fun requireAvailable(
-        request: ReservationRequest,
+        request: StayRequest,
         excludeReservationId: Long? = null,
     ) {
-        if (request.status == ReservationStatus.CANCELLED || request.status == ReservationStatus.EXPIRED) return
         if (!availabilityService.isRoomAvailable(request.roomId, request.checkIn, request.checkOut, excludeReservationId)) {
             throw RoomNotAvailableException(request.roomId)
         }

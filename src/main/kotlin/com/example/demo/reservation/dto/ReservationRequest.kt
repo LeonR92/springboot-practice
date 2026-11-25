@@ -7,8 +7,16 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 import java.time.LocalDate
 
-data class ReservationRequest(
-    val roomId: Long,
+interface StayRequest {
+    val roomId: Long
+    val checkIn: LocalDate
+    val checkOut: LocalDate
+    val couponCode: String?
+}
+
+// What a guest sends. There is no status: a booking always starts PENDING.
+data class CreateReservationRequest(
+    override val roomId: Long,
     @field:NotBlank
     @field:Size(max = 255)
     val guestName: String,
@@ -16,17 +24,33 @@ data class ReservationRequest(
     @field:Email
     @field:Size(max = 255)
     val guestEmail: String,
-    val checkIn: LocalDate,
-    val checkOut: LocalDate,
+    override val checkIn: LocalDate,
+    override val checkOut: LocalDate,
+    @field:Size(max = 50)
+    override val couponCode: String? = null,
+) : StayRequest
+
+// Admin edit: can also set the status.
+data class UpdateReservationRequest(
+    override val roomId: Long,
+    @field:NotBlank
+    @field:Size(max = 255)
+    val guestName: String,
+    @field:NotBlank
+    @field:Email
+    @field:Size(max = 255)
+    val guestEmail: String,
+    override val checkIn: LocalDate,
+    override val checkOut: LocalDate,
     val status: ReservationStatus = ReservationStatus.PENDING,
     @field:Size(max = 50)
-    val couponCode: String? = null,
-)
+    override val couponCode: String? = null,
+) : StayRequest
 
 // The one place that decides what counts as "no coupon": blank means none.
-fun ReservationRequest.normalizedCoupon(): String? = couponCode?.trim()?.takeIf { it.isNotEmpty() }
+fun StayRequest.normalizedCoupon(): String? = couponCode?.trim()?.takeIf { it.isNotEmpty() }
 
-fun ReservationRequest.validateDates() {
+fun StayRequest.validateDates() {
     if (!checkOut.isAfter(checkIn)) {
         throw InvalidStayDatesException()
     }

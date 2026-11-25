@@ -1,13 +1,16 @@
 package com.example.demo.reservation.controller
 
-import com.example.demo.reservation.dto.ReservationRequest
+import com.example.demo.common.security.userId
+import com.example.demo.reservation.dto.CreateReservationRequest
 import com.example.demo.reservation.dto.ReservationResponse
+import com.example.demo.reservation.dto.UpdateReservationRequest
 import com.example.demo.reservation.service.ReservationService
 import jakarta.validation.Valid
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -36,14 +39,15 @@ class ReservationController(
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createReservation(
-        @Valid @RequestBody request: ReservationRequest,
-    ): ReservationResponse = service.create(request)
+        @Valid @RequestBody request: CreateReservationRequest,
+        authentication: Authentication,
+    ): ReservationResponse = service.create(request, authentication.userId)
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     fun updateReservation(
         @PathVariable id: Long,
-        @Valid @RequestBody request: ReservationRequest,
+        @Valid @RequestBody request: UpdateReservationRequest,
     ): ReservationResponse = service.update(id, request)
 
     @PreAuthorize("hasRole('ADMIN')")

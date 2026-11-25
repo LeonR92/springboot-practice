@@ -1,5 +1,7 @@
 package com.example.demo.payment.controller
 
+import com.example.demo.common.security.isAdmin
+import com.example.demo.common.security.userId
 import com.example.demo.payment.dto.PaymentRequest
 import com.example.demo.payment.dto.PaymentResponse
 import com.example.demo.payment.dto.PaymentWebhookRequest
@@ -9,6 +11,7 @@ import com.example.demo.payment.service.WebhookVerifier
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -27,7 +30,13 @@ class PaymentController(
     @ResponseStatus(HttpStatus.CREATED)
     fun createPayment(
         @Valid @RequestBody request: PaymentRequest,
-    ): PaymentResponse = service.createPayment(request)
+        authentication: Authentication,
+    ): PaymentResponse =
+        service.createPayment(
+            request,
+            payerId = authentication.userId,
+            isAdmin = authentication.isAdmin,
+        )
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{id}/confirm")
@@ -42,6 +51,6 @@ class PaymentController(
         @Valid @RequestBody request: PaymentWebhookRequest,
     ): PaymentResponse {
         webhookVerifier.verify(secret)
-        return service.confirmByToken(method, request.token)
+        return service.resolveByToken(method, request.token, request.success)
     }
 }

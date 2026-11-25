@@ -18,8 +18,10 @@ import com.example.demo.payment.repository.PaymentRepository
 import com.example.demo.reservation.model.ReservationStatus
 import com.example.demo.reservation.repository.ReservationRepository
 import org.springframework.context.ApplicationEventPublisher
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
 import java.time.Instant
 
 @Service
@@ -27,16 +29,46 @@ class PaymentService(
     private val repository: PaymentRepository,
     private val reservationRepository: ReservationRepository,
     private val eventPublisher: ApplicationEventPublisher,
+    private val transactions: TransactionTemplate,
     providers: List<PaymentProvider>,
 ) {
     private val paymentProviders = providers.associateBy { it.method }
 
-    @Transactional
-    fun createPayment(request: PaymentRequest): PaymentResponse {
+    // The provider call (with its retries) must not run while the reservation row is locked, hence three steps.
+    fun createPayment(
+        request: PaymentRequest,
+        payerId: Long,
+        isAdmin: Boolean,
+    ): PaymentResponse {
+        val provider = paymentProviders.getValue(request.method)
+        val payment = requireNotNull(transactions.execute { open(request, payerId, isAdmin, provider) })
+
+        try {
+            provider.initiate(payment)
+        } catch (e: Exception) {
+            transactions.executeWithoutResult {
+                repository.findById(requireNotNull(payment.id)).ifPresent { it.status = PaymentStatus.FAILED }
+            }
+            throw e
+        }
+
+        val saved = if (payment.token == null) payment else requireNotNull(transactions.execute { repository.save(payment) })
+        return saved.toResponse()
+    }
+
+    private fun open(
+        request: PaymentRequest,
+        payerId: Long,
+        isAdmin: Boolean,
+        provider: PaymentProvider,
+    ): Payment {
         val reservation =
             reservationRepository.findByIdForUpdate(request.reservationId)
                 ?: throw ReservationNotFoundException(request.reservationId)
 
+        if (!isAdmin && reservation.userId != payerId) {
+            throw AccessDeniedException("Reservation ${request.reservationId} belongs to another user")
+        }
         if (reservation.status != ReservationStatus.PENDING) {
             throw ReservationNotPayableException(request.reservationId, reservation.status.name)
         }
@@ -47,18 +79,17 @@ class PaymentService(
             throw PaymentAlreadyPendingException(request.reservationId)
         }
 
-        val provider = paymentProviders.getValue(request.method)
-        val payment =
+        if (provider.confirmsReservationOnCreate) reservation.status = ReservationStatus.CONFIRMED
+
+        return repository.save(
             Payment(
-                userId = request.userId,
+                userId = payerId,
                 reservationId = request.reservationId,
                 method = request.method,
                 amount = reservation.totalPrice,
                 status = provider.initialStatus,
-            )
-        provider.initiate(payment, reservation)
-
-        return repository.save(payment).toResponse()
+            ),
+        )
     }
 
     @Transactional
@@ -66,21 +97,21 @@ class PaymentService(
         confirm(repository.findById(paymentId).orElseThrow { PaymentNotFoundException(paymentId) })
 
     @Transactional
-    fun confirmByToken(
+    fun resolveByToken(
         method: PaymentMethod,
         token: String,
-    ): PaymentResponse =
-        confirm(
+        success: Boolean,
+    ): PaymentResponse {
+        val payment =
             repository.findByTokenAndMethod(token, method)
-                ?: throw PaymentNotFoundException("Payment with token $token not found"),
-        )
+                ?: throw PaymentNotFoundException("Payment with token $token not found")
+        return if (success) confirm(payment) else fail(payment)
+    }
 
     private fun confirm(payment: Payment): PaymentResponse {
         if (payment.status == PaymentStatus.SUCCEEDED) return payment.toResponse()
 
-        if (payment.status !in PaymentStatus.OPEN) {
-            throw PaymentNotConfirmableException(requireNotNull(payment.id), payment.status.name)
-        }
+        requireOpen(payment)
 
         val reservation =
             reservationRepository.findByIdForUpdate(payment.reservationId)
@@ -89,7 +120,7 @@ class PaymentService(
         // PENDING -> CONFIRMED; CONFIRMED (invoice) stays. EXPIRED/CANCELLED means money arrived for a dead
         // reservation: reject so it can be refunded instead of silently confirming.
         if (reservation.status != ReservationStatus.PENDING && reservation.status != ReservationStatus.CONFIRMED) {
-            throw ReservationNotPayableException(reservation.id!!, reservation.status.name)
+            throw ReservationNotPayableException(requireNotNull(reservation.id), reservation.status.name)
         }
 
         paymentProviders.getValue(payment.method).confirm(payment, reservation)
@@ -97,9 +128,24 @@ class PaymentService(
         payment.status = PaymentStatus.SUCCEEDED
         reservation.status = ReservationStatus.CONFIRMED
 
-        // Invoice PDF + email run
         eventPublisher.publishEvent(PaymentConfirmationEvent(requireNotNull(payment.id)))
 
+        return payment.toResponse()
+    }
+
+    private fun requireOpen(payment: Payment) {
+        if (payment.status !in PaymentStatus.OPEN) {
+            throw PaymentNotConfirmableException(requireNotNull(payment.id), payment.status.name)
+        }
+    }
+
+    // The reservation stays PENDING, so the guest can retry until the hold expires
+    private fun fail(payment: Payment): PaymentResponse {
+        if (payment.status == PaymentStatus.FAILED) return payment.toResponse()
+
+        requireOpen(payment)
+
+        payment.status = PaymentStatus.FAILED
         return payment.toResponse()
     }
 }

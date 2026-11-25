@@ -22,7 +22,7 @@ jwt:
   issuer: demo
 
 payment:
-  webhook-secret: fakesecrettestonly!!!123!
+  webhook-secret: ${PAYMENT_WEBHOOK_SECRET}
   rate-limit:
     max-requests: 5
     window-seconds: 60

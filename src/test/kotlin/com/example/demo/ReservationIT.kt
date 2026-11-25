@@ -90,4 +90,17 @@ class ReservationIT : IntegrationTest() {
 
         get("/api/v1/reservations/$id", adminToken()).andExpect { jsonPath("$.status") { value("EXPIRED") } }
     }
+
+    @Test
+    fun `clients cannot choose the reservation status and the booker is recorded`() {
+        val seed = seedRooms()
+        val user = createUser()
+        val body = reservationBody(seed.roomIds[0]).replace("{", """{"status":"CONFIRMED",""")
+
+        post("/api/v1/reservations", body, bearer(user)).andExpect {
+            status { isCreated() }
+            jsonPath("$.status") { value("PENDING") }
+            jsonPath("$.userId") { value(user.id!!.toInt()) }
+        }
+    }
 }

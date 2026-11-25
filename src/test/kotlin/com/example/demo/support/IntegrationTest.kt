@@ -119,15 +119,16 @@ abstract class IntegrationTest {
     protected fun paymentBody(
         reservationId: Long,
         method: String,
-    ) = """{"userId":1,"reservationId":$reservationId,"method":"$method"}"""
+    ) = """{"reservationId":$reservationId,"method":"$method"}"""
 
     protected fun webhook(
         method: String,
         token: String,
         secret: String? = webhookSecret,
+        success: Boolean = true,
     ) = post(
         "/api/v1/payments/webhook/$method",
-        """{"token":"$token"}""",
+        """{"token":"$token","success":$success}""",
         headers = secret?.let { mapOf("X-Webhook-Secret" to it) }.orEmpty(),
     )
 

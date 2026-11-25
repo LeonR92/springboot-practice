@@ -11,11 +11,11 @@ interface PaymentProvider {
     // Status a new payment starts in
     val initialStatus: PaymentStatus
 
-    // Method-specific work right after the payment is created (provider session, token, reservation handling)
-    fun initiate(
-        payment: Payment,
-        reservation: Reservation,
-    ) {}
+    // True when the stay is confirmed as soon as the payment is created (invoice: nobody pays within the hold)
+    val confirmsReservationOnCreate: Boolean get() = false
+
+    // Talks to the provider (session, token). Runs outside any transaction, so slow calls and retries hold no lock.
+    fun initiate(payment: Payment) {}
 
     // Called when the money is confirmed (webhook for Stripe/PayPal, manual for invoice).
     // Provider-specific checks go here (signature, amount); throw to reject.
