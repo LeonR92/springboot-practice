@@ -24,18 +24,16 @@ class PaymentController(
     private val webhookVerifier: WebhookVerifier
 ) {
 
-    // Client starts a payment; it is confirmed later by the provider's webhook
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createPayment(@Valid @RequestBody request: PaymentRequest): PaymentResponse =
         service.createPayment(request)
 
-    // Manual confirmation, e.g. an invoice whose bank transfer has arrived
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{id}/confirm")
     fun confirmPayment(@PathVariable id: Long): PaymentResponse = service.confirmPayment(id)
 
-    // Called by Stripe/PayPal, not by a logged-in user: public in SecurityConfig, protected by the shared secret
     @PostMapping("/webhook/{method}")
     fun webhook(
         @PathVariable method: PaymentMethod,

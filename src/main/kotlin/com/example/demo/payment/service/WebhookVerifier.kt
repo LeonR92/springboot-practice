@@ -16,7 +16,6 @@ class WebhookVerifier(
     }
 
     fun verify(provided: String?) {
-        // Constant-time compare so the secret can't be guessed byte by byte from response timing
         val ok = provided != null &&
             MessageDigest.isEqual(provided.toByteArray(), expectedBytes)
         if (!ok) throw InvalidWebhookSignatureException()

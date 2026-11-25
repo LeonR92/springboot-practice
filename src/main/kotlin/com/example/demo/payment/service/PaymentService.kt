@@ -9,6 +9,7 @@ import com.example.demo.common.exception.ReservationNotPayableException
 import com.example.demo.payment.dto.PaymentRequest
 import com.example.demo.payment.dto.PaymentResponse
 import com.example.demo.payment.dto.toResponse
+import com.example.demo.payment.event.PaymentConfirmationEvent
 import com.example.demo.payment.model.Payment
 import com.example.demo.payment.model.PaymentMethod
 import com.example.demo.payment.model.PaymentStatus
@@ -16,6 +17,7 @@ import com.example.demo.payment.provider.PaymentProvider
 import com.example.demo.payment.repository.PaymentRepository
 import com.example.demo.reservation.model.ReservationStatus
 import com.example.demo.reservation.repository.ReservationRepository
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -24,6 +26,7 @@ import java.time.Instant
 class PaymentService(
     private val repository: PaymentRepository,
     private val reservationRepository: ReservationRepository,
+    private val eventPublisher: ApplicationEventPublisher,
     providers: List<PaymentProvider>
 ) {
     private val paymentProviders = providers.associateBy { it.method }
@@ -87,6 +90,9 @@ class PaymentService(
 
         payment.status = PaymentStatus.SUCCEEDED
         reservation.status = ReservationStatus.CONFIRMED
+
+        // Invoice PDF + email run
+        eventPublisher.publishEvent(PaymentConfirmationEvent(requireNotNull(payment.id)))
 
         return payment.toResponse()
     }
