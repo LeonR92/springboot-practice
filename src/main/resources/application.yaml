@@ -20,3 +20,9 @@ jwt:
   secret: ${JWT_SECRET}
   expiration-seconds: ${JWT_EXPIRATION_SECONDS:900}
   issuer: demo
+
+payment:
+  webhook-secret: fakesecrettestonly!!!123!
+  rate-limit:
+    max-requests: 5
+    window-seconds: 60

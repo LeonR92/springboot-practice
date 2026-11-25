@@ -12,3 +12,5 @@ Hotel booking system
     - PDF and email generation
     - Seed fake data
     - Add Test
+    - Health check and logging
+    - CICD
