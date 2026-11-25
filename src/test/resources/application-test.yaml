@@ -1,0 +1,12 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+jwt:
+  secret: test-secret-test-secret-test-secret-123
+
+payment:
+  webhook-secret: test-webhook-secret-123
+  rate-limit:
+    max-requests: 1000
