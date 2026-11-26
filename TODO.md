@@ -1,3 +1,3 @@
 Hotel booking system
 - QOL
-    - Fake frontend
+    - Fake frontend (done: frontend/)

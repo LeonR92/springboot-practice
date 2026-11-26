@@ -30,6 +30,12 @@ class ReservationController(
     @GetMapping
     fun getReservations(pageable: Pageable): Page<ReservationResponse> = service.getAll(pageable)
 
+    @GetMapping("/me")
+    fun getMyReservations(
+        authentication: Authentication,
+        pageable: Pageable,
+    ): Page<ReservationResponse> = service.getMine(authentication.userId, pageable)
+
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     fun getReservationById(

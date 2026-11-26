@@ -66,9 +66,7 @@ class PaymentService(
             reservationRepository.findByIdForUpdate(request.reservationId)
                 ?: throw ReservationNotFoundException(request.reservationId)
 
-        if (!isAdmin && reservation.userId != payerId) {
-            throw AccessDeniedException("Reservation ${request.reservationId} belongs to another user")
-        }
+        requireOwnerOrAdmin(reservation.userId, payerId, isAdmin, "Reservation ${request.reservationId}")
         if (reservation.status != ReservationStatus.PENDING) {
             throw ReservationNotPayableException(request.reservationId, reservation.status.name)
         }
@@ -95,6 +93,18 @@ class PaymentService(
     @Transactional
     fun confirmPayment(paymentId: Long): PaymentResponse =
         confirm(repository.findById(paymentId).orElseThrow { PaymentNotFoundException(paymentId) })
+
+    @Transactional
+    fun simulateSuccess(
+        paymentId: Long,
+        callerId: Long,
+        isAdmin: Boolean,
+    ): PaymentResponse {
+        val payment = repository.findById(paymentId).orElseThrow { PaymentNotFoundException(paymentId) }
+        requireOwnerOrAdmin(payment.userId, callerId, isAdmin, "Payment $paymentId")
+        if (payment.method == PaymentMethod.INVOICE) throw PaymentNotConfirmableException(paymentId, "invoices are confirmed by an admin")
+        return confirm(payment)
+    }
 
     @Transactional
     fun resolveByToken(
@@ -131,6 +141,15 @@ class PaymentService(
         eventPublisher.publishEvent(PaymentConfirmationEvent(requireNotNull(payment.id)))
 
         return payment.toResponse()
+    }
+
+    private fun requireOwnerOrAdmin(
+        ownerId: Long?,
+        callerId: Long,
+        isAdmin: Boolean,
+        what: String,
+    ) {
+        if (!isAdmin && ownerId != callerId) throw AccessDeniedException("$what belongs to another user")
     }
 
     private fun requireOpen(payment: Payment) {

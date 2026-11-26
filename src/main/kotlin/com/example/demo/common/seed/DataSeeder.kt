@@ -292,7 +292,7 @@ class DataSeeder(
     companion object {
         private const val SEED = 42L
         private const val PASSWORD = "password1"
-        private const val USER_COUNT = 20
-        private const val HOTEL_COUNT = 5
+        private const val USER_COUNT = 40
+        private const val HOTEL_COUNT = 24
     }
 }

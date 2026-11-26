@@ -41,6 +41,12 @@ class ReservationService(
     fun getAll(pageable: Pageable): Page<ReservationResponse> = repository.findAll(pageable).map { it.toResponse() }
 
     @Transactional(readOnly = true)
+    fun getMine(
+        userId: Long,
+        pageable: Pageable,
+    ): Page<ReservationResponse> = repository.findByUserId(userId, pageable).map { it.toResponse() }
+
+    @Transactional(readOnly = true)
     fun getById(id: Long): ReservationResponse = findReservation(id).toResponse()
 
     @Transactional

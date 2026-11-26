@@ -19,6 +19,12 @@ interface ReservationRepository : JpaRepository<Reservation, Long> {
     @EntityGraph(attributePaths = ["room"])
     override fun findAll(pageable: Pageable): Page<Reservation>
 
+    @EntityGraph(attributePaths = ["room"])
+    fun findByUserId(
+        userId: Long,
+        pageable: Pageable,
+    ): Page<Reservation>
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select r from Reservation r where r.id = :id")
     fun findByIdForUpdate(

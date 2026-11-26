@@ -22,6 +22,6 @@ class AuthService(
             throw InvalidCredentialsException()
         }
 
-        return LoginResponse(jwtService.generateToken(requireNotNull(user.id), user.role))
+        return LoginResponse(jwtService.generateToken(user))
     }
 }

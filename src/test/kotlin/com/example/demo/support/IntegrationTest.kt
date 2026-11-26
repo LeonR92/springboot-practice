@@ -85,7 +85,7 @@ abstract class IntegrationTest {
         return users.save(User(name = "User $n", email = "user$n@test.com", hashedPassword = passwordHash, role = role))
     }
 
-    protected fun bearer(user: User) = "Bearer " + jwt.generateToken(requireNotNull(user.id), user.role)
+    protected fun bearer(user: User) = "Bearer " + jwt.generateToken(user)
 
     protected fun adminToken() = bearer(createUser(UserRole.ADMIN))
 

@@ -2,8 +2,13 @@ package com.example.demo
 
 import com.example.demo.support.IntegrationTest
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.oauth2.jwt.JwtDecoder
+import kotlin.test.assertEquals
 
 class AuthIT : IntegrationTest() {
+    @Autowired lateinit var decoder: JwtDecoder
+
     private val register = "/api/v1/auth/register"
     private val login = "/api/v1/auth/login"
 
@@ -44,7 +49,17 @@ class AuthIT : IntegrationTest() {
                 .body()
                 .json<String>("$.token")
 
-        get("/api/v1/hotels", "Bearer $token").andExpect { status { isOk() } }
+        get("/api/v1/reservations/me", "Bearer $token").andExpect { status { isOk() } }
+    }
+
+    @Test
+    fun `token carries the user's email and name for the frontend`() {
+        post(register, registerBody())
+
+        val claims = decoder.decode(post(login, loginBody()).body().json<String>("$.token"))
+
+        assertEquals("ann@test.com", claims.getClaimAsString("email"))
+        assertEquals("Ann", claims.getClaimAsString("name"))
     }
 
     @Test
@@ -57,7 +72,7 @@ class AuthIT : IntegrationTest() {
 
     @Test
     fun `protected routes need a valid token`() {
-        get("/api/v1/hotels").andExpect { status { isUnauthorized() } }
-        get("/api/v1/hotels", "Bearer garbage").andExpect { status { isUnauthorized() } }
+        get("/api/v1/reservations/me").andExpect { status { isUnauthorized() } }
+        get("/api/v1/reservations/me", "Bearer garbage").andExpect { status { isUnauthorized() } }
     }
 }

@@ -103,4 +103,27 @@ class ReservationIT : IntegrationTest() {
             jsonPath("$.userId") { value(user.id!!.toInt()) }
         }
     }
+
+    @Test
+    fun `users see only their own reservations`() {
+        val seed = seedRooms()
+        val mine = userToken()
+        reserve(seed.roomIds[0], mine)
+        reserve(seed.roomIds[1], userToken())
+
+        get("/api/v1/reservations/me", mine).andExpect {
+            status { isOk() }
+            jsonPath("$.content.length()") { value(1) }
+            jsonPath("$.content[0].roomId") { value(seed.roomIds[0].toInt()) }
+        }
+    }
+
+    @Test
+    fun `catalog is public but reservations are not`() {
+        val seed = seedRooms()
+
+        get("/api/v1/hotels").andExpect { status { isOk() } }
+        get("/api/v1/hotels/${seed.hotelId}/availability?checkIn=2026-12-10&checkOut=2026-12-12").andExpect { status { isOk() } }
+        get("/api/v1/reservations/me").andExpect { status { isUnauthorized() } }
+    }
 }
