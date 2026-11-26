@@ -29,6 +29,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("com.bucket4j:bucket4j_jdk17-core:8.23.0")
+    implementation("net.datafaker:datafaker:2.7.0")
     implementation("org.xerial:sqlite-jdbc:3.46.1.3")
     implementation("org.hibernate.orm:hibernate-community-dialects")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
